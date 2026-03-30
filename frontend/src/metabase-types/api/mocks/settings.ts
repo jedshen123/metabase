@@ -170,8 +170,8 @@ export const createMockSettings = (
   "application-colors": {},
   "application-font": "Lato",
   "application-font-files": [],
-  // eslint-disable-next-line metabase/no-literal-metabase-strings -- This is a mock
-  "application-name": "Metabase",
+
+  "application-name": "Momcozy",
   "application-favicon-url": "",
   "available-fonts": [],
   "available-locales": [

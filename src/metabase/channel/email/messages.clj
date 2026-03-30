@@ -34,11 +34,11 @@
 (set! *warn-on-reflection* true)
 
 (defn app-name-trs
-  "Return the user configured application name, or Metabase translated
+  "Return the user configured application name, or default product name translated
   via trs if a name isn't configured."
   []
   (or (appearance/application-name)
-      (trs "Metabase")))
+      (trs "Momcozy")))
 
 (defn- logo-bundle
   "Get the logo bundle for the current application logo."

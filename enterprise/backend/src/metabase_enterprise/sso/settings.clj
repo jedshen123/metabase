@@ -88,7 +88,7 @@ on your IdP, this usually looks something like `http://www.example.com/141xkex60
 
 (defsetting saml-application-name
   (deferred-tru "This application name will be used for requests to the Identity Provider")
-  :default    "Metabase"
+  :default    "Momcozy"
   :feature    :sso-saml
   :audit      :getter
   :encryption :when-encryption-key-set)

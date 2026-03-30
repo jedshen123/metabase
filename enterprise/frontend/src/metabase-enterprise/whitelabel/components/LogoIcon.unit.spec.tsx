@@ -59,8 +59,9 @@ describe("LogoIcon", () => {
   });
 
   it("should use default logo URL when no setting is provided", async () => {
-    const svgContent = '<svg data-testid="default-svg"><circle r="5"/></svg>';
-    fetchMock.get("http://localhost//app/assets/img/logo.svg", svgContent);
+    fetchMock.get("http://localhost//app/assets/img/logo.png", {
+      body: "not-svg",
+    });
 
     setup();
 
@@ -77,7 +78,7 @@ describe("LogoIcon", () => {
 
     // Verify fetch was called with default URL (may be absolute in test env)
     const calls = fetchMock.callHistory.calls();
-    expect(calls[0].url).toContain("app/assets/img/logo.svg");
+    expect(calls[0].url).toContain("app/assets/img/logo.png");
   });
 
   it("should make fetch request for external SVG", async () => {

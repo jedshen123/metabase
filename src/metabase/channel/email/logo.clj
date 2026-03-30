@@ -1,5 +1,6 @@
 (ns metabase.channel.email.logo
   (:require
+   [clojure.java.io :as io]
    [clojure.string :as str]
    [metabase.channel.render.core :as channel.render]
    [metabase.util.jvm :as u.jvm]))
@@ -29,6 +30,12 @@
     (= logo-url "app/assets/img/logo.svg")
     {:image-src  "http://static.metabase.com/email_logo.png"
      :attachment nil}
+
+    (= logo-url "app/assets/img/logo.png")
+    (when-let [url (io/resource "frontend_client/app/assets/img/logo.png")]
+      (let [bundle (channel.render/make-image-bundle :attachment url)]
+        {:image-src  (:image-src bundle)
+         :attachment (channel.render/image-bundle->attachment bundle)}))
 
     (str/starts-with? logo-url "data:")
     (when-let [{:keys [bytes]} (parse-data-uri logo-url)]

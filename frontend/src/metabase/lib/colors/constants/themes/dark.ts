@@ -5,6 +5,10 @@ import { getBaseColorsForThemeDefinitionOnly } from "../base-colors";
 
 const baseColors = getBaseColorsForThemeDefinitionOnly();
 
+/** 深色背景下使用的同系提亮色，保证与背景对比度 */
+const BRAND_ON_DARK = "#da9faf";
+const BRAND_ON_DARK_HOVER = "#e8c4ce";
+
 /**
  * The default dark theme for Metabase.
  */
@@ -34,20 +38,20 @@ export const METABASE_DARK_THEME: MetabaseThemeV2 = {
     overlay: baseColors.orionAlpha[70],
     "background-error": baseColors.lobster[90],
     "background-success": baseColors.palm[90],
-    brand: baseColors.blue[40],
+    brand: BRAND_ON_DARK,
     "brand-hover": baseColors.brand[30],
     danger: baseColors.lobster[50],
     error: baseColors.lobster[50],
     filter: baseColors.octopus[40],
-    focus: baseColors.blue[70],
+    focus: "#5c3d47",
     "icon-brand": baseColors.brand[40],
     "icon-primary": baseColors.orionAlphaInverse[80],
     "icon-disabled": baseColors.orionAlphaInverse[30],
     "icon-secondary": baseColors.orionAlphaInverse[50],
     "illustration-brand-secondary": baseColors.brand[80],
     "illustration-brand-tertiary": baseColors.brand[90],
-    "metabase-brand": baseColors.blue[40],
-    "metabase-brand-hover": baseColors.blue[50],
+    "metabase-brand": BRAND_ON_DARK,
+    "metabase-brand-hover": BRAND_ON_DARK_HOVER,
     "saturated-blue": baseColors.ocean[40],
     "saturated-green": baseColors.palm[40],
     "saturated-purple": baseColors.octopus[40],

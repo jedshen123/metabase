@@ -91,14 +91,13 @@ describe("mapChartColorsToAccents", () => {
 
 describe("deriveChartTintColor", () => {
   it("derives a lighter variant of the color", () => {
-    // Default accent0 blue (#509EE3) should become lighter
-    expect(deriveChartTintColor("#509EE3")).toBe("#87BCEC");
+    // 默认 accent0 品牌酒红 (#602d38) 的浅色变体
+    expect(deriveChartTintColor("#602d38")).toBe("#8B4151");
   });
 });
 
 describe("deriveChartShadeColor", () => {
   it("derives a darker variant of the color", () => {
-    // Default accent0 blue (#509EE3) should become darker
-    expect(deriveChartShadeColor("#509EE3")).toBe("#227FD2");
+    expect(deriveChartShadeColor("#602d38")).toBe("#35191F");
   });
 });

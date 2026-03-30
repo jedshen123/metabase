@@ -11,7 +11,7 @@ describe("getLogoUrl", () => {
       settings: createMockSettingsState(),
     });
 
-    const expectedDefaultLogoUrl = "app/assets/img/logo.svg";
+    const expectedDefaultLogoUrl = "app/assets/img/logo.png";
 
     expect(getLogoUrl(states)).toBe(expectedDefaultLogoUrl);
   });
@@ -23,7 +23,7 @@ describe("getLogoUrl", () => {
       }),
     });
 
-    const expectedDefaultLogoUrl = "app/assets/img/logo.svg";
+    const expectedDefaultLogoUrl = "app/assets/img/logo.png";
 
     expect(getLogoUrl(states)).toBe(expectedDefaultLogoUrl);
   });
@@ -94,7 +94,7 @@ describe("getIsWhiteLabeling", () => {
   it('should return `false` if "application-name" is not changed', () => {
     const states = createMockState({
       settings: createMockSettingsState({
-        "application-name": "Metabase",
+        "application-name": "Momcozy",
       }),
     });
 

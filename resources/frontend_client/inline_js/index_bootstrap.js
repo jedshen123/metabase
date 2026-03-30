@@ -5,6 +5,19 @@
   window.MetabaseUserColorScheme = JSON.parse(document.getElementById("_metabaseUserColorScheme").textContent);
   window.MetabaseNonce            = JSON.parse(document.getElementById("_metabaseNonce").textContent);
 
+  // 尽早用 bootstrap 里的应用名更新标签标题（避免仅依赖服务端 HTML 模板或 React 挂载顺序）
+  try {
+    var b = window.MetabaseBootstrap;
+    var raw = b && (b["application-name"] != null ? b["application-name"] : b["application_name"]);
+    var label = raw != null ? String(raw).trim() : "";
+    if (label === "Metabase") {
+      label = "Momcozy";
+    }
+    document.title = label || "Momcozy";
+  } catch (e) {
+    document.title = "Momcozy";
+  }
+
   var configuredRoot = document.head.querySelector("meta[name='base-href']").content;
   var actualRoot = "/";
 

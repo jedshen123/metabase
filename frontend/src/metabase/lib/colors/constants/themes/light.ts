@@ -5,6 +5,11 @@ import { getBaseColorsForThemeDefinitionOnly } from "../base-colors";
 
 const baseColors = getBaseColorsForThemeDefinitionOnly();
 
+/** 与横向 Logo 字标一致的主品牌色（酒红） */
+const BRAND_PRIMARY = "#602d38";
+/** 浅色主题下链接 / 徽标悬停，略提亮 */
+const BRAND_PRIMARY_HOVER = "#7a3d4a";
+
 /**
  * The default light theme for Metabase.
  */
@@ -34,20 +39,20 @@ export const METABASE_LIGHT_THEME: MetabaseThemeV2 = {
     overlay: baseColors.orionAlpha[60],
     "background-error": baseColors.lobster[10],
     "background-success": baseColors.palm[5],
-    brand: baseColors.blue[40],
+    brand: BRAND_PRIMARY,
     "brand-hover": baseColors.brand[50],
     danger: baseColors.lobster[50],
     error: baseColors.lobster[50],
     filter: baseColors.octopus[50],
-    focus: baseColors.blue[20],
+    focus: "#f0e4e7",
     "icon-brand": baseColors.brand[40],
     "icon-primary": baseColors.orionAlpha[80],
     "icon-disabled": baseColors.orionAlpha[30],
     "icon-secondary": baseColors.orionAlpha[50],
     "illustration-brand-secondary": baseColors.brand[10],
     "illustration-brand-tertiary": baseColors.brand[5],
-    "metabase-brand": baseColors.blue[40],
-    "metabase-brand-hover": baseColors.blue[30],
+    "metabase-brand": BRAND_PRIMARY,
+    "metabase-brand-hover": BRAND_PRIMARY_HOVER,
     "saturated-blue": baseColors.ocean[60],
     "saturated-green": baseColors.palm[60],
     "saturated-purple": baseColors.octopus[60],

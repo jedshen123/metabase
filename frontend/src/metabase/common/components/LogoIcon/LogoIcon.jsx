@@ -2,8 +2,15 @@ import cx from "classnames";
 import PropTypes from "prop-types";
 import { Component } from "react";
 
+import { useSetting } from "metabase/common/hooks/use-setting";
 import CS from "metabase/css/core/index.css";
 import { PLUGIN_LOGO_ICON_COMPONENTS } from "metabase/plugins";
+
+/** 显式配置为 SVG 资源时保留矢量 Metabase 徽标 */
+const BUILTIN_SVG_LOGO_URL = "app/assets/img/logo.svg";
+
+/** 与后端默认 application-logo-url 一致；未下发设置时用此横向 Logo */
+const DEFAULT_BRAND_LOGO_URL = "app/assets/img/logo.png";
 
 export class DefaultLogoIcon extends Component {
   static defaultProps = {
@@ -179,7 +186,52 @@ export class DefaultLogoIcon extends Component {
   }
 }
 
+function OssLogoIconFromSettings(props) {
+  const applicationLogoUrl = useSetting("application-logo-url");
+  if (applicationLogoUrl === BUILTIN_SVG_LOGO_URL) {
+    return <DefaultLogoIcon {...props} />;
+  }
+
+  const src =
+    typeof applicationLogoUrl === "string" && applicationLogoUrl.trim() !== ""
+      ? applicationLogoUrl
+      : DEFAULT_BRAND_LOGO_URL;
+
+  const { height = 32, width, className, style = {} } = props;
+  // 横向 PNG 字标按传入尺寸减半显示（顶栏默认 32 → 16）
+  const displayHeight = Math.max(1, Math.round(height / 2));
+  const displayWidth =
+    width != null ? Math.max(1, Math.round(width / 2)) : undefined;
+  return (
+    <img
+      src={src}
+      alt=""
+      height={displayHeight}
+      width={displayWidth}
+      className={cx("Icon", className)}
+      style={{
+        maxHeight: displayHeight,
+        width: displayWidth ?? "auto",
+        objectFit: "contain",
+        display: "block",
+        ...style,
+      }}
+      data-testid="main-logo"
+    />
+  );
+}
+
+OssLogoIconFromSettings.propTypes = {
+  height: PropTypes.number,
+  width: PropTypes.number,
+  className: PropTypes.string,
+  style: PropTypes.object,
+};
+
 export function LogoIcon(props) {
-  const [Component = DefaultLogoIcon] = PLUGIN_LOGO_ICON_COMPONENTS;
-  return <Component {...props} />;
+  const [PluginComponent] = PLUGIN_LOGO_ICON_COMPONENTS;
+  if (PluginComponent) {
+    return <PluginComponent {...props} />;
+  }
+  return <OssLogoIconFromSettings {...props} />;
 }

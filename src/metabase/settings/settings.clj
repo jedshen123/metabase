@@ -15,6 +15,6 @@
     (setting/application-name-for-setting-descriptions appearance/application-name)"
   [getter :- [:=> [:cat] :string]]
   (if *compile-files*
-    "Metabase"
+    "Momcozy"
     (binding [config/*disable-setting-cache* true]
       (getter))))

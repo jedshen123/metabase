@@ -10,7 +10,7 @@ import { LOADING_MESSAGE_BY_SETTING } from "../whitelabel/lib/loading-message";
 
 import type { EnterpriseState } from "./types";
 
-const DEFAULT_LOGO_URL = "app/assets/img/logo.svg";
+const DEFAULT_LOGO_URL = "app/assets/img/logo.png";
 
 const getCustomLogoUrl = (settingValues: EnterpriseSettings) => {
   return (
@@ -33,13 +33,18 @@ export const getLoadingMessage = (state: EnterpriseState) => {
   return LOADING_MESSAGE_BY_SETTING[setting]?.value ?? (() => "");
 };
 
-// eslint-disable-next-line metabase/no-literal-metabase-strings -- This is a Metabase string we want to keep. It's used for comparison.
-const DEFAULT_APPLICATION_NAME = "Metabase";
+const DEFAULT_APPLICATION_NAME = "Momcozy";
 export const getIsWhiteLabeling = (state: EnterpriseState) =>
   getApplicationName(state) !== DEFAULT_APPLICATION_NAME;
 
 export function getApplicationName(state: EnterpriseState) {
-  return getSetting(state, "application-name");
+  const raw = getSetting(state, "application-name");
+  const s = raw != null ? String(raw).trim() : "";
+  // eslint-disable-next-line metabase/no-literal-metabase-strings -- 识别上游默认应用名以便映射为 Momcozy 品牌化显示
+  if (s === "Metabase") {
+    return DEFAULT_APPLICATION_NAME;
+  }
+  return s || DEFAULT_APPLICATION_NAME;
 }
 
 export function getShowMetabaseLinks(state: EnterpriseState) {

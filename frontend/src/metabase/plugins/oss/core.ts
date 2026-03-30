@@ -4,6 +4,7 @@ import { t } from "ttag";
 
 import noResultsSource from "assets/img/no_results.svg";
 import { PluginPlaceholder } from "metabase/plugins/components/PluginPlaceholder";
+import { getSetting } from "metabase/selectors/settings";
 import type { UiParameter } from "metabase-lib/v1/parameters/types";
 import type { Dashboard } from "metabase-types/api";
 import type {
@@ -79,12 +80,24 @@ export const PLUGIN_ADMIN_TOOLS: {
   COMPONENT: ComponentType | null;
 } = getDefaultAdminTools();
 
+/** 与后端 application-name 默认值一致；从 Redux 读取，缺省时用此占位 */
+const DEFAULT_APPLICATION_DISPLAY_NAME = "Momcozy";
+
+function applicationNameFromSetting(raw: string | null | undefined): string {
+  const s = raw != null ? String(raw).trim() : "";
+  // eslint-disable-next-line metabase/no-literal-metabase-strings -- 识别上游默认应用名以便映射为 Momcozy 品牌化显示
+  if (s === "Metabase") {
+    return DEFAULT_APPLICATION_DISPLAY_NAME;
+  }
+  return s || DEFAULT_APPLICATION_DISPLAY_NAME;
+}
+
 const getDefaultSelectors = () => ({
   canWhitelabel: (_state: State) => false,
   getLoadingMessageFactory: (_state: State) => getLoadingMessage,
   getIsWhiteLabeling: (_state: State) => false,
-  // eslint-disable-next-line metabase/no-literal-metabase-strings -- This is the actual Metabase name, so we don't want to translate it.
-  getApplicationName: (_state: State) => "Metabase",
+  getApplicationName: (state: State) =>
+    applicationNameFromSetting(getSetting(state, "application-name")),
   getShowMetabaseLinks: (_state: State) => true,
   getLoginPageIllustration: (_state: State): IllustrationValue => {
     return defaultLoginPageIllustration;

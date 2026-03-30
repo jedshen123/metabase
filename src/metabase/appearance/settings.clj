@@ -18,13 +18,21 @@
   :type       :string
   :audit      :getter
   :feature    :whitelabel
-  :default    "Metabase")
+  :default    "Momcozy")
+
+(defn application-display-name
+  "品牌化展示用名称：库中仍为默认 Metabase 或未设置时，在 HTML 标题与 bootstrap 中显示 Momcozy。"
+  []
+  (let [n (str/trim (application-name))]
+    (if (or (str/blank? n) (= n "Metabase"))
+      "Momcozy"
+      n)))
 
 (defsetting site-name
   (deferred-tru "The name used for this instance of {0}."
                 (setting/application-name-for-setting-descriptions application-name))
   :encryption :no
-  :default    "Metabase"
+  :default    "Momcozy"
   :audit      :getter
   :visibility :settings-manager
   :export?    true)
@@ -175,12 +183,12 @@ See [fonts](../configuring-metabase/fonts.md).")
 (defn application-color
   "The primary color, a.k.a. brand color"
   []
-  (or (:brand (application-colors)) "#509EE3"))
+  (or (:brand (application-colors)) "#602d38"))
 
 (defn secondary-chart-color
   "The first 'Additional chart color'"
   []
-  (or (:accent3 (application-colors)) "#EF8C8C"))
+  (or (:accent3 (application-colors)) "#c97d8a"))
 
 (defsetting application-logo-url
   (deferred-tru "Upload a file to replace the Metabase logo on the top bar.")
@@ -190,7 +198,7 @@ See [fonts](../configuring-metabase/fonts.md).")
   :type       :string
   :audit      :getter
   :feature    :whitelabel
-  :default    "app/assets/img/logo.svg"
+  :default    "app/assets/img/logo.png"
   :doc "Inline styling and inline scripts are not supported.")
 
 (defsetting application-favicon-url
@@ -201,7 +209,7 @@ See [fonts](../configuring-metabase/fonts.md).")
   :type       :string
   :audit      :getter
   :feature    :whitelabel
-  :default    "app/assets/img/favicon.ico")
+  :default    "app/assets/img/favicon.png")
 
 (defsetting show-metabot
   (deferred-tru "Enables Metabot character on the home page")

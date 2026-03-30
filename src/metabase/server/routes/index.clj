@@ -80,7 +80,10 @@
 
 (defn- template-parameters
   [embeddable? {:keys [uri params nonce]}]
-  (let [{:keys [anon-tracking-enabled google-auth-client-id], :as public-settings} (setting/user-readable-values-map #{:public})
+  (let [public-settings-raw (setting/user-readable-values-map #{:public})
+        ;; 与前端一致：遗留 Metabase 默认名在首屏 bootstrap 中改为 Momcozy
+        public-settings       (assoc public-settings-raw :application-name (appearance/application-display-name))
+        {:keys [anon-tracking-enabled google-auth-client-id]} public-settings
         ;; We disable `locale` parameter on static embeds/public links (metabase#50313)
         should-load-locale-params? (not embeddable?)]
     {:bootstrapJS            (load-inline-js "index_bootstrap")
@@ -96,7 +99,7 @@
                                                                  (= custom-favicon "app/assets/img/favicon.ico"))
                                                           "app/assets/img/favicon-dev.ico"
                                                           custom-favicon)))
-     :applicationName        (hiccup.util/escape-html (appearance/application-name))
+     :applicationName        (hiccup.util/escape-html (appearance/application-display-name))
      :uri                    (hiccup.util/escape-html uri)
      :baseHref               (hiccup.util/escape-html (base-href))
      :embedCode              (when embeddable? (embed/head uri))
