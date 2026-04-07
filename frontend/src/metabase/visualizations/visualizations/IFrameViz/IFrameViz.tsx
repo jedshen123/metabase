@@ -143,7 +143,7 @@ export function IFrameViz({
           width={width}
           height={height}
           frameBorder={0}
-          sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts"
+          sandbox="allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-downloads"
           referrerPolicy="strict-origin-when-cross-origin"
           {...allowedIframeAttributes}
           src={interpolatedSrc}

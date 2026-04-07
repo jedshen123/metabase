@@ -94,7 +94,7 @@ describe("IFrameViz", () => {
     const iframe = screen.getByTestId("iframe-visualization");
     expect(iframe).toHaveAttribute(
       "sandbox",
-      "allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts",
+      "allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-downloads",
     );
     expect(iframe).toHaveAttribute(
       "referrerPolicy",
@@ -233,7 +233,7 @@ describe("IFrameViz", () => {
     expect(iframe).not.toHaveAttribute("onload");
     expect(iframe).toHaveAttribute(
       "sandbox",
-      "allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts",
+      "allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-downloads",
     );
     expect(iframe).toHaveAttribute(
       "referrerPolicy",
