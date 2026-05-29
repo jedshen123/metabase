@@ -1,6 +1,7 @@
 import cx from "classnames";
 import type { JSX } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "ttag";
 
 import { isInstanceAnalyticsCollection } from "metabase/collections/utils";
 import { EditBar } from "metabase/common/components/EditBar";
@@ -26,7 +27,7 @@ import {
   PLUGIN_MODERATION,
 } from "metabase/plugins";
 import { FullWidthContainer } from "metabase/styled-components/layout/FullWidthContainer";
-import { Box, Flex } from "metabase/ui";
+import { ActionIcon, Box, Flex, Icon, Tooltip } from "metabase/ui";
 import type { Collection, Dashboard as IDashboard } from "metabase-types/api";
 
 import { Dashboard } from "../Dashboard";
@@ -69,6 +70,10 @@ export function DashboardHeaderView({
   const isSettingsSidebarOpen = useSelector(getIsShowDashboardSettingsSidebar);
 
   const isDashboardHeaderVisible = useSelector(getIsHeaderVisible);
+  const hasDashboardCards = dashboard.dashcards.length > 0;
+  const canCollapseHeader =
+    isDashboardHeaderVisible && hasDashboardCards && !isEditing && !editWarning;
+  const [isHeaderCollapsed, setIsHeaderCollapsed] = useState(true);
 
   const isAnalyticsDashboard = isInstanceAnalyticsCollection(collection);
 
@@ -99,6 +104,19 @@ export function DashboardHeaderView({
     return () => clearTimeout(timerId);
   }, [isLastEditInfoVisible]);
 
+  useEffect(() => {
+    if (!canCollapseHeader) {
+      setIsHeaderCollapsed(false);
+    }
+  }, [canCollapseHeader]);
+
+  const isMainHeaderVisible =
+    isDashboardHeaderVisible && (!canCollapseHeader || !isHeaderCollapsed);
+
+  const handleToggleHeader = useCallback(() => {
+    setIsHeaderCollapsed((isCollapsed) => !isCollapsed);
+  }, []);
+
   return (
     <div className={S.DashboardHeader}>
       {isEditing && <EditBar title={editingTitle} buttons={editingButtons} />}
@@ -119,7 +137,35 @@ export function DashboardHeaderView({
           } as React.CSSProperties
         }
       >
-        {isDashboardHeaderVisible && (
+        {canCollapseHeader && (
+          <div className={S.HeaderCollapseToggle}>
+            <Tooltip
+              label={
+                isHeaderCollapsed
+                  ? t`Show dashboard header`
+                  : t`Hide dashboard header`
+              }
+            >
+              <ActionIcon
+                aria-label={
+                  isHeaderCollapsed
+                    ? t`Show dashboard header`
+                    : t`Hide dashboard header`
+                }
+                variant="subtle"
+                color="text-secondary"
+                size="sm"
+                onClick={handleToggleHeader}
+              >
+                <Icon
+                  name={isHeaderCollapsed ? "chevrondown" : "chevronup"}
+                  size={14}
+                />
+              </ActionIcon>
+            </Tooltip>
+          </div>
+        )}
+        {isMainHeaderVisible && (
           <FullWidthContainer
             className={cx(CS.wrapper, S.HeaderRow)}
             data-testid="dashboard-header"

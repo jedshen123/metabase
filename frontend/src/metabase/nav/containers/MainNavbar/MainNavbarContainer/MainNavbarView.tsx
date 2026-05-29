@@ -5,12 +5,14 @@ import { t } from "ttag";
 import _ from "underscore";
 
 import ErrorBoundary from "metabase/ErrorBoundary";
+import { skipToken, useListCollectionItemsQuery } from "metabase/api";
 import {
   isExamplesCollection,
   isLibraryCollection,
   isRootTrashCollection,
 } from "metabase/collections/utils";
 import { CollapseSection } from "metabase/common/components/CollapseSection";
+import { LogoIcon } from "metabase/common/components/LogoIcon";
 import { Tree } from "metabase/common/components/tree";
 import { useSetting, useUserSetting } from "metabase/common/hooks";
 import { useIsAtHomepageDashboard } from "metabase/common/hooks/use-is-at-homepage-dashboard";
@@ -24,20 +26,29 @@ import {
 import { isSmallScreen } from "metabase/lib/dom";
 import { useSelector } from "metabase/lib/redux";
 import * as Urls from "metabase/lib/urls";
+import { AppSwitcher } from "metabase/nav/components/AppSwitcher";
+import NewItemButton from "metabase/nav/components/NewItemButton";
 import { WhatsNewNotification } from "metabase/nav/components/WhatsNewNotification";
+import { SearchButton } from "metabase/nav/components/search/SearchButton";
 import { PLUGIN_REMOTE_SYNC, PLUGIN_TENANTS } from "metabase/plugins";
 import {
   getIsTenantUser,
   getUser,
   getUserCanWriteToCollections,
 } from "metabase/selectors/user";
-import { ActionIcon, Icon, Tooltip } from "metabase/ui";
-import type { Bookmark, Collection } from "metabase-types/api";
+import { ActionIcon, Icon, Text, Tooltip } from "metabase/ui";
+import type { Bookmark, Collection, CollectionItem } from "metabase-types/api";
 
 import {
   PaddedSidebarLink,
+  SidebarAccountText,
+  SidebarActions,
+  SidebarBody,
   SidebarContentRoot,
+  SidebarFooter,
+  SidebarHeader,
   SidebarHeading,
+  SidebarLogoLink,
   SidebarSection,
   TrashSidebarSection,
 } from "../MainNavbar.styled";
@@ -75,8 +86,74 @@ type Props = {
   }) => Promise<any>;
 };
 const OTHER_USERS_COLLECTIONS_URL = Urls.otherUsersPersonalCollections();
+const SIDEBAR_DASHBOARD_LIMIT = 100;
+
+type DashboardTreeItem = {
+  id: string;
+  name: string;
+  icon: "dashboard";
+  children: [];
+  data: CollectionItem & { model: "dashboard" };
+};
+type SidebarCollectionTreeItem = Omit<CollectionTreeItem, "children"> & {
+  children: SidebarTreeItem[];
+};
+type SidebarTreeItem = SidebarCollectionTreeItem | DashboardTreeItem;
+
+function getDashboardTreeItemId(dashboard: { id: string | number }) {
+  return `dashboard-${dashboard.id}`;
+}
+
+function buildDashboardTreeItems(
+  dashboards: CollectionItem[] = [],
+): DashboardTreeItem[] {
+  return dashboards
+    .filter(
+      (dashboard): dashboard is CollectionItem & { model: "dashboard" } =>
+        dashboard.model === "dashboard" && !dashboard.archived,
+    )
+    .map((dashboard) => ({
+      id: getDashboardTreeItemId(dashboard),
+      name: dashboard.name,
+      icon: "dashboard",
+      children: [],
+      data: dashboard,
+    }));
+}
+
+function addDashboardsToCollectionTree(
+  collections: CollectionTreeItem[],
+  collectionId: Collection["id"] | undefined,
+  dashboards: CollectionItem[] = [],
+): SidebarTreeItem[] {
+  if (collectionId == null || dashboards.length === 0) {
+    return collections;
+  }
+
+  const dashboardTreeItems = buildDashboardTreeItems(dashboards);
+
+  return collections.map((collection) => {
+    const children = addDashboardsToCollectionTree(
+      collection.children,
+      collectionId,
+      dashboards,
+    );
+
+    if (collection.id !== collectionId) {
+      return children === collection.children
+        ? collection
+        : { ...collection, children };
+    }
+
+    return {
+      ...collection,
+      children: [...children, ...dashboardTreeItems],
+    };
+  });
+}
 
 export function MainNavbarView({
+  isOpen,
   bookmarks,
   collections,
   selectedItems,
@@ -113,6 +190,19 @@ export function MainNavbarView({
     dashboard: dashboardItem,
     "non-entity": nonEntityItem,
   } = _.indexBy(selectedItems, (item) => item.type);
+
+  const { data: selectedCollectionItems } = useListCollectionItemsQuery(
+    collectionItem?.id != null
+      ? {
+          id: collectionItem.id,
+          models: ["dashboard"],
+          archived: false,
+          limit: SIDEBAR_DASHBOARD_LIMIT,
+          sort_column: "name",
+          sort_direction: "asc",
+        }
+      : skipToken,
+  );
 
   const onItemSelect = useCallback(() => {
     if (isSmallScreen()) {
@@ -177,10 +267,48 @@ export function MainNavbarView({
     ? t`Internal Collections`
     : t`Collections`;
 
+  const regularCollectionsWithDashboards = useMemo(
+    () =>
+      addDashboardsToCollectionTree(
+        regularCollections,
+        collectionItem?.id,
+        selectedCollectionItems?.data,
+      ),
+    [regularCollections, collectionItem?.id, selectedCollectionItems?.data],
+  );
+
+  const hasSelectedDashboardInTree =
+    dashboardItem?.id != null &&
+    selectedCollectionItems?.data.some(
+      (item) => item.model === "dashboard" && item.id === dashboardItem.id,
+    );
+
+  const selectedCollectionTreeItemId =
+    hasSelectedDashboardInTree && dashboardItem?.id != null
+      ? getDashboardTreeItemId({ id: dashboardItem.id })
+      : collectionItem?.id;
+
   return (
     <ErrorBoundary>
       <SidebarContentRoot>
-        <div>
+        <SidebarBody>
+          <SidebarHeader isOpen={isOpen}>
+            <SidebarLogoLink
+              to="/"
+              onClick={handleHomeClick}
+              data-testid="main-logo-link"
+            >
+              <LogoIcon height={52} />
+            </SidebarLogoLink>
+
+            {isOpen && (
+              <SidebarActions>
+                <SearchButton w="100%" />
+                <NewItemButton />
+              </SidebarActions>
+            )}
+          </SidebarHeader>
+
           <SidebarSection>
             <PaddedSidebarLink
               isSelected={nonEntityItem?.url === "/"}
@@ -284,8 +412,8 @@ export function MainNavbarView({
                   />
                 ) : (
                   <Tree
-                    data={regularCollections}
-                    selectedId={collectionItem?.id}
+                    data={regularCollectionsWithDashboards}
+                    selectedId={selectedCollectionTreeItemId}
                     onSelect={onItemSelect}
                     TreeNode={SidebarCollectionLink}
                     role="tree"
@@ -331,7 +459,22 @@ export function MainNavbarView({
           <div>
             <WhatsNewNotification />
           </div>
-        </div>
+        </SidebarBody>
+        <SidebarFooter isOpen={isOpen}>
+          <AppSwitcher />
+          {isOpen && (
+            <SidebarAccountText>
+              <Text fw={700} lh="sm" truncate>
+                {currentUser?.first_name || currentUser?.email || t`Account`}
+              </Text>
+              {currentUser?.email && (
+                <Text c="text-tertiary" fz="sm" lh="sm" truncate>
+                  {currentUser.email}
+                </Text>
+              )}
+            </SidebarAccountText>
+          )}
+        </SidebarFooter>
       </SidebarContentRoot>
 
       <AddDataModal opened={addDataModalOpened} onClose={closeAddDataModal} />

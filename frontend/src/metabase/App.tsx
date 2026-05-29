@@ -101,6 +101,8 @@ function App({
 }: AppProps) {
   const [viewportElement, setViewportElement] = useState<HTMLElement | null>();
   const applicationName = useSelector(getApplicationName);
+  const hasFloatingNav = isNavBarEnabled && !isAdminApp;
+  const shouldShowAppBar = isAppBarVisible && !hasFloatingNav;
 
   usePageTitle(applicationName, { titleIndex: 0 });
   useTokenRefresh();
@@ -116,7 +118,7 @@ function App({
           <KeyboardTriggeredErrorModal />
           <AppContainer className={CS.spread}>
             <AppBanner />
-            {isAppBarVisible && <AppBar />}
+            {shouldShowAppBar && <AppBar />}
             <AppContentContainer isAdminApp={isAdminApp}>
               {isNavBarEnabled && <Navbar />}
               <AppContent ref={setViewportElement}>

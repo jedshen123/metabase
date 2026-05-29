@@ -1,11 +1,12 @@
 // eslint-disable-next-line no-restricted-imports
 import styled from "@emotion/styled";
 
-import { NAV_SIDEBAR_WIDTH } from "metabase/nav/constants";
+import { Link } from "metabase/common/components/Link";
 import {
-  breakpointMaxSmall,
-  breakpointMinSmall,
-} from "metabase/styled-components/theme";
+  NAV_SIDEBAR_TRIGGER_WIDTH,
+  NAV_SIDEBAR_WIDTH,
+} from "metabase/nav/constants";
+import { breakpointMaxSmall } from "metabase/styled-components/theme";
 import { Box, type BoxProps } from "metabase/ui";
 
 import { SidebarLink } from "./SidebarItems";
@@ -16,15 +17,26 @@ export const Sidebar = styled.aside<{
   side: "left" | "right";
   width?: string;
 }>`
-  ${({ isOpen }) => (isOpen ? "" : "display: none")};
-
   height: 100%;
-  position: relative;
+  position: absolute;
+  inset-block: 0;
+  ${(props) =>
+    props.side === "left" ? "inset-inline-start: 0;" : "inset-inline-end: 0;"}
   flex-shrink: 0;
   align-items: center;
   background-color: var(--mb-color-background-primary);
-  z-index: 4;
+  z-index: 6;
   width: ${(props) => props.width ?? NAV_SIDEBAR_WIDTH};
+  overflow: hidden;
+  transform: ${(props) =>
+    props.isOpen
+      ? "translateX(0)"
+      : `translateX(calc(-1 * ${props.width ?? NAV_SIDEBAR_WIDTH}))`};
+  transition:
+    transform 280ms cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 200ms ease;
+  box-shadow: ${(props) =>
+    props.isOpen ? "0 7px 20px var(--mb-color-shadow)" : "none"};
   ${(props) =>
     props.side === "left"
       ? "border-inline-end: 1px solid var(--mb-color-border);"
@@ -32,10 +44,55 @@ export const Sidebar = styled.aside<{
 
   ${breakpointMaxSmall} {
     width: 90vw;
+    transform: ${(props) =>
+      props.isOpen ? "translateX(0)" : "translateX(-90vw)"};
     position: absolute;
     top: 0;
     ${(props) =>
       props.side === "left" ? "inset-inline-start: 0;" : "inset-inline-end: 0;"}
+    box-shadow: ${(props) =>
+      props.isOpen ? "0 7px 20px var(--mb-color-shadow)" : "none"};
+  }
+`;
+
+export const SidebarTrigger = styled.button<{
+  isOpen: boolean;
+  side: "left" | "right";
+}>`
+  position: absolute;
+  top: 50%;
+  ${(props) =>
+    props.side === "left" ? "inset-inline-start: 0;" : "inset-inline-end: 0;"}
+  z-index: 5;
+  display: ${(props) => (props.isOpen ? "none" : "flex")};
+  align-items: center;
+  justify-content: center;
+  width: ${NAV_SIDEBAR_TRIGGER_WIDTH};
+  height: 4rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: var(--mb-color-brand);
+  color: var(--mb-color-text-white);
+  cursor: pointer;
+  opacity: 0.72;
+  transform: translateY(-50%);
+  transition:
+    width 200ms ease,
+    opacity 200ms ease;
+
+  &:hover {
+    width: 1.375rem;
+    opacity: 1;
+  }
+
+  &::after {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    border-block-start: 2px solid currentColor;
+    border-inline-end: 2px solid currentColor;
+    transform: rotate(45deg);
   }
 `;
 
@@ -48,13 +105,10 @@ export const NavRoot = styled.nav<{ isOpen: boolean }>`
   background-color: transparent;
   overflow-x: hidden;
   overflow-y: auto;
-
-  ${breakpointMinSmall} {
-    width: ${(props) => (props.isOpen ? NAV_SIDEBAR_WIDTH : 0)};
-  }
+  width: ${NAV_SIDEBAR_WIDTH};
 
   ${breakpointMaxSmall} {
-    width: ${(props) => (props.isOpen ? "90vw" : 0)};
+    width: 90vw;
   }
 `;
 
@@ -63,6 +117,55 @@ export const SidebarContentRoot = styled.div`
   flex: 1;
   flex-direction: column;
   justify-content: space-between;
+  min-width: ${NAV_SIDEBAR_WIDTH};
+`;
+
+export const SidebarHeader = styled.div<{ isOpen: boolean }>`
+  display: flex;
+  flex-direction: column;
+  gap: var(--mantine-spacing-md);
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md)
+    var(--mantine-spacing-sm);
+  width: ${NAV_SIDEBAR_WIDTH};
+  opacity: ${(props) => (props.isOpen ? 1 : 0.94)};
+`;
+
+export const SidebarLogoLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  width: fit-content;
+  max-width: calc(${NAV_SIDEBAR_WIDTH} - 2rem);
+  overflow: hidden;
+  border-radius: 0.375rem;
+  line-height: 0;
+`;
+
+export const SidebarActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--mantine-spacing-sm);
+`;
+
+export const SidebarBody = styled.div`
+  flex: 1;
+`;
+
+export const SidebarFooter = styled.div<{ isOpen: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: ${(props) => (props.isOpen ? "flex-start" : "center")};
+  gap: var(--mantine-spacing-sm);
+  padding: var(--mantine-spacing-md);
+  border-top: 1px solid var(--mb-color-border);
+  width: ${NAV_SIDEBAR_WIDTH};
+`;
+
+export const SidebarAccountText = styled.div`
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
 `;
 
 export const SidebarSection = styled(Box)<BoxProps>`

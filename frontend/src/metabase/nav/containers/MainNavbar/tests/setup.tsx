@@ -22,7 +22,13 @@ import {
 import type { ModelResult } from "metabase/browse/models";
 import { ROOT_COLLECTION } from "metabase/entities/collections";
 import * as domUtils from "metabase/lib/dom";
-import type { Card, Dashboard, DashboardId, User } from "metabase-types/api";
+import type {
+  Card,
+  CollectionItem,
+  Dashboard,
+  DashboardId,
+  User,
+} from "metabase-types/api";
 import {
   createMockCollection,
   createMockDatabase,
@@ -57,6 +63,7 @@ export type SetupOpts = {
   hasEmbeddingFeature?: boolean;
   applicationName?: string;
   activeUsersCount?: number;
+  testCollectionItems?: CollectionItem[];
 };
 
 export const PERSONAL_COLLECTION_BASE = createMockCollection({
@@ -89,6 +96,7 @@ export async function setup({
   hasWhitelabelToken,
   hasEmbeddingFeature,
   applicationName = "Metabase",
+  testCollectionItems = [],
 }: SetupOpts = {}) {
   if (isEmbeddingIframe) {
     jest.spyOn(domUtils, "isWithinIframe").mockReturnValue(true);
@@ -149,6 +157,16 @@ export async function setup({
     collection: createMockCollection(OUR_ANALYTICS),
     collectionItems: [],
   });
+  setupCollectionItemsEndpoint({
+    collection: TEST_COLLECTION,
+    collectionItems: testCollectionItems,
+  });
+  if (personalCollection) {
+    setupCollectionItemsEndpoint({
+      collection: personalCollection,
+      collectionItems: [],
+    });
+  }
 
   setupSettingEndpoint({
     settingKey: "version-info",

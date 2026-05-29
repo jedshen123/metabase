@@ -9,11 +9,12 @@ import type {
   TreeNodeProps,
 } from "metabase/common/components/tree/types";
 import { getCollectionIcon } from "metabase/entities/collections/utils";
+import { getIcon } from "metabase/lib/icon";
 import { useSelector } from "metabase/lib/redux";
 import * as Urls from "metabase/lib/urls";
 import { PLUGIN_COLLECTIONS } from "metabase/plugins";
 import { getIsTenantUser } from "metabase/selectors/user";
-import type { Collection } from "metabase-types/api";
+import type { Collection, CollectionItem } from "metabase-types/api";
 
 import {
   CollectionNodeRoot,
@@ -34,6 +35,56 @@ type Props = DroppableProps &
   };
 
 const TIME_BEFORE_EXPANDING_ON_HOVER = 600;
+
+type DashboardTreeItem = ITreeNodeItem<CollectionItem> & {
+  data: CollectionItem & { model: "dashboard" };
+};
+
+function isDashboardTreeItem(item: ITreeNodeItem): item is DashboardTreeItem {
+  return (
+    (item.data as Partial<CollectionItem> | undefined)?.model === "dashboard"
+  );
+}
+
+const SidebarDashboardLink = forwardRef<HTMLLIElement, TreeNodeProps>(
+  function SidebarDashboardLink(
+    { item, depth, onSelect, isSelected, rightSection }: TreeNodeProps,
+    ref,
+  ) {
+    const dashboard = item.data as CollectionItem;
+    const icon = getIcon(dashboard);
+
+    return (
+      <CollectionNodeRoot
+        role="treeitem"
+        depth={depth}
+        aria-selected={isSelected}
+        isSelected={isSelected}
+        hasDefaultIconStyle
+        ref={ref}
+      >
+        <ExpandToggleButton hidden>
+          <TreeNode.ExpandToggleIcon
+            isExpanded={false}
+            name="chevronright"
+            size={12}
+          />
+        </ExpandToggleButton>
+        <FullWidthLink
+          to={Urls.dashboard(dashboard)}
+          onClick={onSelect}
+          onKeyDown={undefined}
+        >
+          <TreeNode.IconContainer transparent={false}>
+            <SidebarIcon {...icon} isSelected={isSelected} />
+          </TreeNode.IconContainer>
+          <NameContainer>{dashboard.name}</NameContainer>
+          {rightSection?.(item)}
+        </FullWidthLink>
+      </CollectionNodeRoot>
+    );
+  },
+);
 
 const SidebarCollectionLink = forwardRef<HTMLLIElement, Props>(
   function SidebarCollectionLink(
@@ -131,6 +182,10 @@ const DroppableSidebarCollectionLink = forwardRef<HTMLLIElement, TreeNodeProps>(
     { item, ...props }: TreeNodeProps,
     ref,
   ) {
+    if (isDashboardTreeItem(item)) {
+      return <SidebarDashboardLink item={item} {...props} ref={ref} />;
+    }
+
     const collection = item as unknown as Collection;
     return (
       <div data-testid="sidebar-collection-link-root">

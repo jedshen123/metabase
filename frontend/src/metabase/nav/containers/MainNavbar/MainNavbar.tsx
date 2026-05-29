@@ -1,5 +1,5 @@
 import type { LocationDescriptor } from "history";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { push } from "react-router-redux";
 import _ from "underscore";
 
@@ -9,6 +9,7 @@ import {
   useGetCollectionQuery,
 } from "metabase/api";
 import { getDashboard } from "metabase/dashboard/selectors";
+import { isSmallScreen } from "metabase/lib/dom";
 import { connect } from "metabase/lib/redux";
 import * as Urls from "metabase/lib/urls";
 import { closeNavbar, openNavbar } from "metabase/redux/app";
@@ -16,7 +17,7 @@ import Question from "metabase-lib/v1/Question";
 import type { CollectionId, Dashboard } from "metabase-types/api";
 import type { State } from "metabase-types/store";
 
-import { NavRoot, Sidebar } from "./MainNavbar.styled";
+import { NavRoot, Sidebar, SidebarTrigger } from "./MainNavbar.styled";
 import MainNavbarContainer from "./MainNavbarContainer";
 import getSelectedItems, {
   isCollectionPath,
@@ -79,6 +80,8 @@ function MainNavbar({
   onChangeLocation,
   ...props
 }: Props) {
+  const closeTimer = useRef<number | null>(null);
+
   const { currentData: card } = useGetCardQuery(
     questionId
       ? {
@@ -120,27 +123,74 @@ function MainNavbar({
     });
   }, [location, params, card, dashboard, collection]);
 
+  const clearCloseTimer = useCallback(() => {
+    if (closeTimer.current != null) {
+      window.clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }, []);
+
+  const handleMouseEnter = useCallback(() => {
+    if (isSmallScreen()) {
+      return;
+    }
+
+    clearCloseTimer();
+    openNavbar();
+  }, [clearCloseTimer, openNavbar]);
+
+  const handleTriggerClick = useCallback(() => {
+    clearCloseTimer();
+    openNavbar();
+  }, [clearCloseTimer, openNavbar]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (isSmallScreen()) {
+      return;
+    }
+
+    clearCloseTimer();
+    closeTimer.current = window.setTimeout(() => {
+      closeNavbar();
+    }, 300);
+  }, [clearCloseTimer, closeNavbar]);
+
+  useEffect(() => {
+    return clearCloseTimer;
+  }, [clearCloseTimer]);
+
   return (
-    <Sidebar
-      isOpen={isOpen}
-      side="left"
-      aria-hidden={!isOpen}
-      data-testid="main-navbar-root"
-      data-element-id="navbar-root"
-    >
-      <NavRoot isOpen={isOpen}>
-        <MainNavbarContainer
-          isOpen={isOpen}
-          location={location}
-          params={params}
-          selectedItems={selectedItems}
-          openNavbar={openNavbar}
-          closeNavbar={closeNavbar}
-          onChangeLocation={onChangeLocation}
-          {...props}
-        />
-      </NavRoot>
-    </Sidebar>
+    <>
+      <SidebarTrigger
+        isOpen={isOpen}
+        side="left"
+        aria-label="Open navigation"
+        onClick={handleTriggerClick}
+        onMouseEnter={handleMouseEnter}
+      />
+      <Sidebar
+        isOpen={isOpen}
+        side="left"
+        aria-hidden={!isOpen}
+        data-testid="main-navbar-root"
+        data-element-id="navbar-root"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <NavRoot isOpen={isOpen}>
+          <MainNavbarContainer
+            isOpen={isOpen}
+            location={location}
+            params={params}
+            selectedItems={selectedItems}
+            openNavbar={openNavbar}
+            closeNavbar={closeNavbar}
+            onChangeLocation={onChangeLocation}
+            {...props}
+          />
+        </NavRoot>
+      </Sidebar>
+    </>
   );
 }
 

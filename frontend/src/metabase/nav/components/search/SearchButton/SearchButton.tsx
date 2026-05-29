@@ -9,10 +9,10 @@ import { Button, type ButtonProps, Flex, Icon } from "metabase/ui";
 
 export const SearchButton = (props: ButtonProps) => {
   const kbar = useKBar();
-  const { setVisualState } = kbar.query;
+  const setVisualState = kbar.query?.setVisualState;
 
   const handleClick = useCallback(() => {
-    setVisualState(VisualState.showing);
+    setVisualState?.(VisualState.showing);
   }, [setVisualState]);
 
   const isSmallScreen = useIsSmallScreen();

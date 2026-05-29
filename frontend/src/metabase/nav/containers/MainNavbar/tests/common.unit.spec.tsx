@@ -7,6 +7,7 @@ import { ROOT_COLLECTION } from "metabase/entities/collections";
 import * as Urls from "metabase/lib/urls";
 import {
   createMockCard,
+  createMockCollectionItem,
   createMockDashboard,
   createMockUser,
 } from "metabase-types/api/mocks";
@@ -279,6 +280,25 @@ describe("nav > containers > MainNavbar", () => {
         "aria-selected",
         "false",
       );
+    });
+
+    it("should show dashboards inside the selected collection", async () => {
+      const dashboard = createMockCollectionItem({
+        id: 123,
+        model: "dashboard",
+        name: "Revenue dashboard",
+        collection_id: TEST_COLLECTION.id,
+      });
+
+      await setup({
+        pathname: Urls.collection(TEST_COLLECTION),
+        route: "/collection/:slug",
+        testCollectionItems: [dashboard],
+      });
+
+      expect(
+        await screen.findByRole("link", { name: /Revenue dashboard/i }),
+      ).toHaveAttribute("href", "/dashboard/123-revenue-dashboard");
     });
 
     it("should highlight personal collection if selected", async () => {

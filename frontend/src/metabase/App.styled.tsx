@@ -32,8 +32,10 @@ export const AppContent = styled.main`
   height: 100%;
   overflow: auto;
   scroll-margin-top: ${APP_BAR_HEIGHT};
+  padding-inline-start: 0;
 
   @media print {
     overflow: visible !important;
+    padding-inline-start: 0;
   }
 `;
