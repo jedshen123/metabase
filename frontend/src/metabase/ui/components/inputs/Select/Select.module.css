@@ -39,6 +39,19 @@
 .SelectInput {
   color: var(--mb-color-text-primary);
   background-color: var(--mb-color-background-primary);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+
+  &:hover:not([data-disabled], [data-error]) {
+    border-color: var(--mb-color-border-strong);
+  }
+
+  &:focus {
+    border-color: var(--mb-color-brand);
+    box-shadow: 0 0 0 3px var(--mb-color-focus);
+  }
 
   &[data-disabled] {
     opacity: 1;
@@ -95,6 +108,10 @@
   font-size: var(--select-item-font-size);
   line-height: var(--select-item-line-height);
   margin-top: 1px;
+  border-radius: var(--mantine-radius-xs);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 
   &:hover {
     color: var(--mb-color-text-hover);
@@ -155,6 +172,7 @@
 .Dropdown {
   background-color: var(--mb-color-background-primary);
   border-color: var(--mb-color-border);
+  box-shadow: var(--mantine-shadow-md);
 }
 
 .SelectError {

@@ -6,6 +6,20 @@
   padding-bottom: rem(5px);
   padding-inline-start: rem(5px);
   padding-inline-end: rem(40px);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+
+  &:hover:not([data-disabled], [data-error]) {
+    border-color: var(--mb-color-border-strong);
+  }
+
+  &:focus,
+  &:focus-within {
+    border-color: var(--mb-color-brand);
+    box-shadow: 0 0 0 3px var(--mb-color-focus);
+  }
 
   &[data-disabled] {
     opacity: 1;

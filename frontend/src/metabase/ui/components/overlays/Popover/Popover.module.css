@@ -4,6 +4,7 @@
   background: var(--mb-color-background-primary);
   border-color: var(--mb-color-border);
   color: var(--mb-color-text-primary);
+  box-shadow: var(--mantine-shadow-md);
 }
 
 .dropdown[data-menu-dropdown="true"] {

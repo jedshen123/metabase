@@ -1,3 +1,22 @@
+.root {
+  color: var(--mb-color-text-primary);
+  background-color: var(--mb-color-background-primary);
+  border-color: var(--mb-color-border);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
+}
+
+.root[data-with-border] {
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.root[data-with-border]:hover {
+  border-color: var(--mb-color-border-strong);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
 .section {
   border-top-color: var(--mb-color-border);
   border-bottom-color: var(--mb-color-border);

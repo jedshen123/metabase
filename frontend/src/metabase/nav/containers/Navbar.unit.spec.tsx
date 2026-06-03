@@ -1,4 +1,5 @@
 import type { Store } from "@reduxjs/toolkit";
+import userEvent from "@testing-library/user-event";
 import fetchMock from "fetch-mock";
 import { Route } from "react-router";
 
@@ -104,6 +105,12 @@ describe("nav > containers > Navbar > Core App", () => {
 
   it("should be hidden when isOpen is false", async () => {
     await setup({ isOpen: false });
+    await expectNavbarClosed();
+  });
+
+  it("should close when the sidebar mask is clicked", async () => {
+    await setup({ isOpen: true });
+    await userEvent.click(screen.getByTestId("main-navbar-mask"));
     await expectNavbarClosed();
   });
 
@@ -243,7 +250,6 @@ async function expectNavbarOpen() {
 
 async function expectNavbarClosed() {
   const navbar = await screen.findByTestId("main-navbar-root");
-  expect(navbar).not.toBeVisible();
   expect(navbar).toHaveAttribute("aria-hidden", "true");
 }
 

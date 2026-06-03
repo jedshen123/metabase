@@ -11,6 +11,10 @@
   color: var(--mb-color-text-primary);
   border-radius: var(--mantine-radius-xs);
   background-color: var(--mb-color-background-primary);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
 
   &::placeholder {
     color: var(--mb-color-text-tertiary);
@@ -34,8 +38,13 @@
   &[data-variant="default"] {
     border-color: var(--mb-color-border);
 
+    &:hover:not(:disabled, [data-disabled], [data-error]) {
+      border-color: var(--mb-color-border-strong);
+    }
+
     &:focus {
       border-color: var(--mb-color-brand);
+      box-shadow: 0 0 0 3px var(--mb-color-focus);
     }
 
     &[data-error] {
@@ -46,6 +55,7 @@
   &[data-error] {
     color: var(--mb-color-error);
     border-color: var(--mb-color-error);
+    box-shadow: 0 0 0 3px var(--mb-color-background-error-secondary);
 
     &::placeholder {
       color: var(--mb-color-error);

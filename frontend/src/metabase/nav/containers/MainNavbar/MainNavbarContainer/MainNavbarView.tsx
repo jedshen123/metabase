@@ -1,6 +1,6 @@
 import { useDisclosure } from "@mantine/hooks";
 import type { MouseEvent } from "react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { t } from "ttag";
 import _ from "underscore";
 
@@ -36,7 +36,7 @@ import {
   getUser,
   getUserCanWriteToCollections,
 } from "metabase/selectors/user";
-import { ActionIcon, Icon, Text, Tooltip } from "metabase/ui";
+import { ActionIcon, Icon, type IconName, Text, Tooltip } from "metabase/ui";
 import type { Bookmark, Collection, CollectionItem } from "metabase-types/api";
 
 import {
@@ -86,68 +86,118 @@ type Props = {
   }) => Promise<any>;
 };
 const OTHER_USERS_COLLECTIONS_URL = Urls.otherUsersPersonalCollections();
-const SIDEBAR_DASHBOARD_LIMIT = 100;
+const SIDEBAR_COLLECTION_ITEM_LIMIT = 100;
+const SIDEBAR_COLLECTION_ITEM_MODELS = ["dashboard", "table", "card"] as const;
 
-type DashboardTreeItem = {
+type SidebarCollectionItemModel =
+  (typeof SIDEBAR_COLLECTION_ITEM_MODELS)[number];
+
+type CollectionAssetTreeItem = {
   id: string;
   name: string;
-  icon: "dashboard";
+  icon: IconName;
   children: [];
-  data: CollectionItem & { model: "dashboard" };
+  data: CollectionItem & { model: SidebarCollectionItemModel };
 };
 type SidebarCollectionTreeItem = Omit<CollectionTreeItem, "children"> & {
   children: SidebarTreeItem[];
 };
-type SidebarTreeItem = SidebarCollectionTreeItem | DashboardTreeItem;
+type SidebarTreeItem = SidebarCollectionTreeItem | CollectionAssetTreeItem;
 
-function getDashboardTreeItemId(dashboard: { id: string | number }) {
-  return `dashboard-${dashboard.id}`;
+function isCollectionAssetTreeItem(
+  item: SidebarTreeItem,
+): item is CollectionAssetTreeItem {
+  return (
+    "data" in item &&
+    SIDEBAR_COLLECTION_ITEM_MODELS.includes(
+      item.data?.model as SidebarCollectionItemModel,
+    )
+  );
 }
 
-function buildDashboardTreeItems(
-  dashboards: CollectionItem[] = [],
-): DashboardTreeItem[] {
-  return dashboards
-    .filter(
-      (dashboard): dashboard is CollectionItem & { model: "dashboard" } =>
-        dashboard.model === "dashboard" && !dashboard.archived,
-    )
-    .map((dashboard) => ({
-      id: getDashboardTreeItemId(dashboard),
-      name: dashboard.name,
-      icon: "dashboard",
+function getCollectionAssetTreeItemId(item: {
+  id: string | number;
+  model: CollectionItem["model"];
+}) {
+  return `${item.model}-${item.id}`;
+}
+
+function getCollectionItemsCacheKey(collectionId: Collection["id"]) {
+  return String(collectionId);
+}
+
+function isSidebarCollectionItem(
+  item: CollectionItem,
+): item is CollectionItem & { model: SidebarCollectionItemModel } {
+  return SIDEBAR_COLLECTION_ITEM_MODELS.includes(
+    item.model as SidebarCollectionItemModel,
+  );
+}
+
+function getCollectionAssetIconName(item: CollectionItem): IconName {
+  switch (item.model) {
+    case "card":
+      return "table2";
+    case "dashboard":
+      return "dashboard";
+    case "table":
+      return "table";
+    default:
+      return "unknown";
+  }
+}
+
+function buildCollectionAssetTreeItems(
+  collectionItems: CollectionItem[] = [],
+): CollectionAssetTreeItem[] {
+  const uniqueItems = _.uniq(
+    collectionItems,
+    false,
+    (item) => `${item.model}-${item.id}`,
+  );
+
+  return uniqueItems
+    .filter((item) => isSidebarCollectionItem(item) && !item.archived)
+    .map((item) => ({
+      id: getCollectionAssetTreeItemId(item),
+      name: item.name,
+      icon: getCollectionAssetIconName(item),
       children: [],
-      data: dashboard,
+      data: item,
     }));
 }
 
-function addDashboardsToCollectionTree(
+function addCollectionAssetsToCollectionTree(
   collections: CollectionTreeItem[],
-  collectionId: Collection["id"] | undefined,
-  dashboards: CollectionItem[] = [],
+  collectionItemsByCollectionId: Record<string, CollectionItem[]> = {},
 ): SidebarTreeItem[] {
-  if (collectionId == null || dashboards.length === 0) {
+  if (Object.keys(collectionItemsByCollectionId).length === 0) {
     return collections;
   }
 
-  const dashboardTreeItems = buildDashboardTreeItems(dashboards);
-
   return collections.map((collection) => {
-    const children = addDashboardsToCollectionTree(
+    const children = addCollectionAssetsToCollectionTree(
       collection.children,
-      collectionId,
-      dashboards,
+      collectionItemsByCollectionId,
+    );
+    const assetTreeItems = buildCollectionAssetTreeItems(
+      collectionItemsByCollectionId[getCollectionItemsCacheKey(collection.id)],
     );
 
-    if (collection.id !== collectionId) {
+    if (assetTreeItems.length === 0) {
       return children === collection.children
         ? collection
         : { ...collection, children };
     }
+    const existingAssetIds = new Set(assetTreeItems.map((asset) => asset.id));
+    const childrenWithoutDuplicateAssets = children.filter(
+      (child) =>
+        !isCollectionAssetTreeItem(child) || !existingAssetIds.has(child.id),
+    );
 
     return {
       ...collection,
-      children: [...children, ...dashboardTreeItems],
+      children: [...childrenWithoutDuplicateAssets, ...assetTreeItems],
     };
   });
 }
@@ -190,19 +240,48 @@ export function MainNavbarView({
     dashboard: dashboardItem,
     "non-entity": nonEntityItem,
   } = _.indexBy(selectedItems, (item) => item.type);
+  const selectedCollectionId = collectionItem?.id;
 
   const { data: selectedCollectionItems } = useListCollectionItemsQuery(
-    collectionItem?.id != null
+    selectedCollectionId != null
       ? {
-          id: collectionItem.id,
-          models: ["dashboard"],
+          id: selectedCollectionId,
+          models: [...SIDEBAR_COLLECTION_ITEM_MODELS],
           archived: false,
-          limit: SIDEBAR_DASHBOARD_LIMIT,
+          limit: SIDEBAR_COLLECTION_ITEM_LIMIT,
           sort_column: "name",
           sort_direction: "asc",
         }
       : skipToken,
   );
+  const [collectionItemsByCollectionId, setCollectionItemsByCollectionId] =
+    useState<Record<string, CollectionItem[]>>({});
+
+  useEffect(() => {
+    if (selectedCollectionId == null || selectedCollectionItems?.data == null) {
+      return;
+    }
+
+    const cacheKey = getCollectionItemsCacheKey(selectedCollectionId);
+
+    setCollectionItemsByCollectionId(
+      (previousCollectionItemsByCollectionId) => {
+        if (
+          _.isEqual(
+            previousCollectionItemsByCollectionId[cacheKey],
+            selectedCollectionItems.data,
+          )
+        ) {
+          return previousCollectionItemsByCollectionId;
+        }
+
+        return {
+          ...previousCollectionItemsByCollectionId,
+          [cacheKey]: selectedCollectionItems.data,
+        };
+      },
+    );
+  }, [selectedCollectionId, selectedCollectionItems?.data]);
 
   const onItemSelect = useCallback(() => {
     if (isSmallScreen()) {
@@ -267,25 +346,37 @@ export function MainNavbarView({
     ? t`Internal Collections`
     : t`Collections`;
 
-  const regularCollectionsWithDashboards = useMemo(
+  const regularCollectionsWithAssets = useMemo(
     () =>
-      addDashboardsToCollectionTree(
+      addCollectionAssetsToCollectionTree(
         regularCollections,
-        collectionItem?.id,
-        selectedCollectionItems?.data,
+        collectionItemsByCollectionId,
       ),
-    [regularCollections, collectionItem?.id, selectedCollectionItems?.data],
+    [regularCollections, collectionItemsByCollectionId],
   );
 
-  const hasSelectedDashboardInTree =
-    dashboardItem?.id != null &&
-    selectedCollectionItems?.data.some(
-      (item) => item.model === "dashboard" && item.id === dashboardItem.id,
+  const selectedCollectionItemsInTree =
+    selectedCollectionId != null
+      ? collectionItemsByCollectionId[
+          getCollectionItemsCacheKey(selectedCollectionId)
+        ]
+      : undefined;
+
+  const selectedAssetItem = dashboardItem ?? cardItem;
+  const hasSelectedAssetInTree =
+    selectedAssetItem?.id != null &&
+    selectedCollectionItemsInTree?.some(
+      (item) =>
+        item.model === selectedAssetItem.type &&
+        item.id === selectedAssetItem.id,
     );
 
   const selectedCollectionTreeItemId =
-    hasSelectedDashboardInTree && dashboardItem?.id != null
-      ? getDashboardTreeItemId({ id: dashboardItem.id })
+    hasSelectedAssetInTree && selectedAssetItem?.id != null
+      ? getCollectionAssetTreeItemId({
+          id: selectedAssetItem.id,
+          model: selectedAssetItem.type,
+        })
       : collectionItem?.id;
 
   return (
@@ -298,7 +389,7 @@ export function MainNavbarView({
               onClick={handleHomeClick}
               data-testid="main-logo-link"
             >
-              <LogoIcon height={52} />
+              <LogoIcon height={35} />
             </SidebarLogoLink>
 
             {isOpen && (
@@ -412,7 +503,7 @@ export function MainNavbarView({
                   />
                 ) : (
                   <Tree
-                    data={regularCollectionsWithDashboards}
+                    data={regularCollectionsWithAssets}
                     selectedId={selectedCollectionTreeItemId}
                     onSelect={onItemSelect}
                     TreeNode={SidebarCollectionLink}

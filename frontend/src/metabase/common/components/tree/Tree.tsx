@@ -40,6 +40,9 @@ function BaseTree<TData = unknown>({
       selectedId != null ? getInitialExpandedIds(selectedId, data) : [],
     );
   });
+  const [manuallyCollapsedIds, setManuallyCollapsedIds] = useState<
+    Set<ITreeNodeItem<TData>["id"]>
+  >(new Set());
   const previousSelectedId = usePrevious(selectedId);
   const prevData = usePrevious(data);
 
@@ -52,12 +55,21 @@ function BaseTree<TData = unknown>({
       previousSelectedId !== selectedId && !expandedIds.has(selectedId);
 
     if (selectedItemChanged || dataHasChanged) {
-      setExpandedIds(
-        (prev) =>
-          new Set([...prev, ...getInitialExpandedIds(selectedId, data)]),
-      );
+      setExpandedIds((prev) => {
+        const autoExpandedIds = getInitialExpandedIds(selectedId, data).filter(
+          (id) => !manuallyCollapsedIds.has(id),
+        );
+        return new Set([...prev, ...autoExpandedIds]);
+      });
     }
-  }, [prevData, data, selectedId, previousSelectedId, expandedIds]);
+  }, [
+    prevData,
+    data,
+    selectedId,
+    previousSelectedId,
+    expandedIds,
+    manuallyCollapsedIds,
+  ]);
 
   const handleToggleExpand = useCallback(
     (itemId: string | number) => {
@@ -65,8 +77,12 @@ function BaseTree<TData = unknown>({
         setExpandedIds(
           (prev) => new Set([...prev].filter((id) => id !== itemId)),
         );
+        setManuallyCollapsedIds((prev) => new Set([...prev, itemId]));
       } else {
         setExpandedIds((prev) => new Set([...prev, itemId]));
+        setManuallyCollapsedIds(
+          (prev) => new Set([...prev].filter((id) => id !== itemId)),
+        );
       }
     },
     [expandedIds],

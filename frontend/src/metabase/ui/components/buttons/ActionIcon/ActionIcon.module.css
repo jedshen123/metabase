@@ -1,4 +1,10 @@
 .root {
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+
   &[data-disabled] {
     color: var(--mb-color-text-tertiary);
     pointer-events: all;
@@ -9,7 +15,8 @@
 
     &:hover {
       color: var(--mb-color-text-secondary);
-      background-color: var(--mb-color-background-secondary);
+      background-color: var(--mb-color-background-hover);
+      box-shadow: var(--mantine-shadow-xs);
     }
   }
 
@@ -22,7 +29,8 @@
     &:hover {
       color: var(--mb-color-brand);
       background-color: var(--mb-color-background-tertiary);
-      border: 1px solid transparent;
+      border-color: var(--mb-color-border-subtle);
+      box-shadow: var(--mantine-shadow-xs);
     }
 
     &:disabled,

@@ -85,10 +85,10 @@ export const getThemeOverrides = (
     colorScheme,
   },
   shadows: {
-    // eslint-disable-next-line metabase/no-color-literals
-    sm: "0px 1px 4px 2px rgba(0, 0, 0, 0.08)",
-    // eslint-disable-next-line metabase/no-color-literals
-    md: "0px 4px 20px 0px rgba(0, 0, 0, 0.05)",
+    xs: "0 1px 2px color-mix(in srgb, var(--mb-color-shadow) 55%, transparent)",
+    sm: "0 1px 3px color-mix(in srgb, var(--mb-color-shadow) 55%, transparent), 0 1px 2px color-mix(in srgb, var(--mb-color-shadow) 35%, transparent)",
+    md: "0 8px 24px color-mix(in srgb, var(--mb-color-shadow) 32%, transparent), 0 2px 8px color-mix(in srgb, var(--mb-color-shadow) 24%, transparent)",
+    lg: "0 16px 40px color-mix(in srgb, var(--mb-color-shadow) 28%, transparent), 0 4px 12px color-mix(in srgb, var(--mb-color-shadow) 20%, transparent)",
   },
   spacing: {
     xs: rem(4),
@@ -101,6 +101,7 @@ export const getThemeOverrides = (
     xs: "4px",
     sm: "6px",
     md: "8px",
+    lg: "12px",
     xl: "40px",
   },
   fontSizes: {

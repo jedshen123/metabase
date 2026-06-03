@@ -20,9 +20,13 @@
   color: var(--mb-color-text-primary);
   max-width: 100%;
   justify-content: start;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    color 120ms ease;
 
   &:hover {
-    border-color: var(--mb-color-background-hover);
+    border-color: var(--mb-color-border-subtle);
     background-color: var(--mb-color-background-hover);
   }
 
@@ -38,6 +42,11 @@
   &[data-active="true"] {
     color: var(--mb-color-text-brand);
     border-color: var(--mb-color-brand);
+    background-color: color-mix(
+      in srgb,
+      var(--mb-color-background-selected) 42%,
+      transparent
+    );
   }
 }
 

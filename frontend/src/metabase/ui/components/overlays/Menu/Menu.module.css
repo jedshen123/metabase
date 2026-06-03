@@ -4,6 +4,7 @@
   overflow: visible;
   background-color: var(--mb-color-background-primary);
   border-color: var(--mb-color-border);
+  box-shadow: var(--mantine-shadow-md);
 }
 
 .item {
@@ -11,6 +12,10 @@
   font-size: var(--mantine-font-size-md);
   line-height: var(--mantine-line-height-lg);
   padding: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-xs);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 
   &[data-disabled="true"] {
     color: var(--mb-color-text-tertiary);

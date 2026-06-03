@@ -1,8 +1,18 @@
 .root {
   color: var(--mb-color-text-primary);
   background-color: var(--mb-color-background-primary);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease;
 }
 
 .root[data-with-border] {
   border-color: var(--mb-color-border);
+  box-shadow: var(--mantine-shadow-xs);
+}
+
+.root[data-with-border]:hover {
+  border-color: var(--mb-color-border-strong);
+  box-shadow: var(--mantine-shadow-sm);
 }

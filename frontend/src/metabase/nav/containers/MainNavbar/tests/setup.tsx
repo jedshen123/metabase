@@ -249,19 +249,19 @@ export async function setupCollectionPage({
   await setup({ pathname, route });
 
   const rootCollectionElements = {
-    link: screen.getByRole("link", { name: /Our analytics/i }),
+    button: screen.getByRole("button", { name: /Our analytics/i }),
     listItem: screen.getByRole("treeitem", { name: /Our analytics/i }),
   };
 
   const personalCollectionElements = {
-    link: screen.getByRole("link", { name: /Your personal collection/i }),
+    button: screen.getByRole("button", { name: /Your personal collection/i }),
     listItem: screen.getByRole("treeitem", {
       name: /Your personal collection/i,
     }),
   };
 
   const regularCollectionElements = {
-    link: screen.getByRole("link", { name: /Test collection/i }),
+    button: screen.getByRole("button", { name: /Test collection/i }),
     listItem: screen.getByRole("treeitem", { name: /Test collection/i }),
   };
 

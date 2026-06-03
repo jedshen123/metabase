@@ -17,7 +17,12 @@ import Question from "metabase-lib/v1/Question";
 import type { CollectionId, Dashboard } from "metabase-types/api";
 import type { State } from "metabase-types/store";
 
-import { NavRoot, Sidebar, SidebarTrigger } from "./MainNavbar.styled";
+import {
+  NavRoot,
+  Sidebar,
+  SidebarMask,
+  SidebarTrigger,
+} from "./MainNavbar.styled";
 import MainNavbarContainer from "./MainNavbarContainer";
 import getSelectedItems, {
   isCollectionPath,
@@ -167,6 +172,12 @@ function MainNavbar({
         aria-label="Open navigation"
         onClick={handleTriggerClick}
         onMouseEnter={handleMouseEnter}
+      />
+      <SidebarMask
+        isOpen={isOpen}
+        aria-hidden={!isOpen}
+        data-testid="main-navbar-mask"
+        onClick={closeNavbar}
       />
       <Sidebar
         isOpen={isOpen}

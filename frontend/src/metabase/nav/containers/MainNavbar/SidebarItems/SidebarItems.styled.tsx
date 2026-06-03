@@ -7,7 +7,6 @@ import { forwardRef } from "react";
 
 import { Link } from "metabase/common/components/Link";
 import { TreeNode } from "metabase/common/components/tree/TreeNode";
-import { alpha } from "metabase/lib/colors";
 import type { ColorName } from "metabase/lib/colors/types";
 import { NAV_SIDEBAR_WIDTH } from "metabase/nav/constants";
 import type { IconProps } from "metabase/ui";
@@ -27,13 +26,33 @@ export const SidebarIcon = styled(
   ${(props) =>
     !props.color &&
     css`
-      color: var(--mb-color-brand);
+      color: ${props.isSelected
+        ? "var(--mb-color-brand)"
+        : "var(--mb-color-icon-secondary)"};
     `}
+  transition: color 120ms ease;
 `;
 
 export const ExpandToggleButton = styled(TreeNode.ExpandToggleButton)`
-  padding: 4px 0 4px 2px;
-  color: var(--mb-color-brand);
+  width: 18px;
+  height: 28px;
+  padding: 0;
+  color: var(--mb-color-icon-secondary);
+  opacity: ${(props) => (props.hidden ? 0 : 0.58)};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--mantine-radius-xs);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+
+  &:hover {
+    color: var(--mb-color-brand);
+    opacity: 1;
+    background-color: var(--mb-color-background-hover);
+  }
 `;
 
 const activeColorCSS = css`
@@ -41,7 +60,7 @@ const activeColorCSS = css`
 `;
 
 function getTextColor(isSelected: boolean) {
-  return isSelected ? color("brand") : color("text-primary");
+  return isSelected ? color("text-brand") : color("text-primary");
 }
 
 type NodeRootProps = ComponentProps<typeof TreeNode.Root> & {
@@ -49,27 +68,76 @@ type NodeRootProps = ComponentProps<typeof TreeNode.Root> & {
 };
 
 export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
+  position: relative;
+  min-height: 32px;
+  margin: 1px 0;
+  gap: 2px;
   color: ${(props) => getTextColor(props.isSelected)};
   background-color: ${(props) =>
-    props.isSelected ? alpha("brand", 0.2) : "unset"};
-  padding-left: ${(props) => props.depth}rem;
-  border-radius: 4px;
+    props.isSelected ? "var(--mb-color-background-selected)" : "transparent"};
+  padding-left: ${(props) => `calc(${props.depth}rem + 2px)`};
+  border-radius: var(--mantine-radius-sm);
+  box-shadow: ${(props) =>
+    props.isSelected
+      ? "inset 3px 0 0 var(--mb-color-brand)"
+      : "inset 3px 0 0 transparent"};
+  font-weight: 500;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
+
+  ${(props) =>
+    props.depth > 0 &&
+    css`
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: calc(${props.depth}rem - 0.45rem);
+        width: 1px;
+        background-color: var(--mb-color-border-subtle);
+      }
+    `}
+
+  &[data-sidebar-item-type="card"],
+  &[data-sidebar-item-type="dashboard"],
+  &[data-sidebar-item-type="table"] {
+    color: ${(props) =>
+      props.isSelected
+        ? "var(--mb-color-text-brand)"
+        : "var(--mb-color-text-secondary)"};
+    font-weight: 500;
+  }
 
   &:focus-within {
-    outline: 2px solid var(--mb-color-focus);
-    outline-offset: -2px;
+    outline: none;
+    box-shadow:
+      inset 3px 0 0 var(--mb-color-brand),
+      0 0 0 2px var(--mb-color-focus);
   }
 
   ${ExpandToggleButton} {
-    ${(props) => props.isSelected && activeColorCSS}
+    ${(props) =>
+      props.isSelected &&
+      css`
+        ${activeColorCSS}
+        opacity: 1;
+      `}
   }
 
   &:hover {
-    background-color: ${() => alpha("brand", 0.35)};
-    color: var(--mb-color-brand);
+    background-color: var(--mb-color-background-hover);
+    color: var(--mb-color-text-hover);
+    box-shadow: ${(props) =>
+      props.isSelected
+        ? "inset 3px 0 0 var(--mb-color-brand)"
+        : "inset 3px 0 0 var(--mb-color-border-subtle)"};
 
     ${ExpandToggleButton} {
       color: var(--mb-color-brand);
+      opacity: 1;
     }
   }
 
@@ -104,8 +172,8 @@ export const FullWidthButton = styled.button<{ isSelected: boolean }>`
 
   ${itemContentStyle}
   ${TreeNode.NameContainer} {
-    font-weight: 700;
-    color: ${(props) => (props.isSelected ? color("brand") : "inherit")};
+    font-weight: inherit;
+    color: ${(props) => (props.isSelected ? color("text-brand") : "inherit")};
     text-align: start;
 
     &:hover {
@@ -121,6 +189,7 @@ export const FullWidthButton = styled.button<{ isSelected: boolean }>`
 
 export const FullWidthLink = styled(Link)`
   ${itemContentStyle}
+  color: inherit;
 
   &:focus,
   &:focus-visible {

@@ -198,21 +198,12 @@ describe("nav > containers > MainNavbar", () => {
         regularCollectionElements,
       } = await setupCollectionPage({ pathname: "/", route: "/" });
 
-      expect(rootCollectionElements.link).toBeInTheDocument();
-      expect(rootCollectionElements.link).toHaveAttribute(
-        "href",
-        Urls.collection(ROOT_COLLECTION),
-      );
-      expect(personalCollectionElements.link).toBeInTheDocument();
-      expect(personalCollectionElements.link).toHaveAttribute(
-        "href",
-        Urls.collection(PERSONAL_COLLECTION_BASE),
-      );
-      expect(regularCollectionElements.link).toBeInTheDocument();
-      expect(regularCollectionElements.link).toHaveAttribute(
-        "href",
-        Urls.collection(TEST_COLLECTION),
-      );
+      expect(rootCollectionElements.button).toBeInTheDocument();
+      expect(rootCollectionElements.button).not.toHaveAttribute("href");
+      expect(personalCollectionElements.button).toBeInTheDocument();
+      expect(personalCollectionElements.button).not.toHaveAttribute("href");
+      expect(regularCollectionElements.button).toBeInTheDocument();
+      expect(regularCollectionElements.button).not.toHaveAttribute("href");
     });
 
     it("should not highlight collections when not selected", async () => {
@@ -282,7 +273,44 @@ describe("nav > containers > MainNavbar", () => {
       );
     });
 
-    it("should show dashboards inside the selected collection", async () => {
+    it("should show collection assets inside the selected collection", async () => {
+      const dashboard = createMockCollectionItem({
+        id: 123,
+        model: "dashboard",
+        name: "Operations dashboard",
+        collection_id: TEST_COLLECTION.id,
+      });
+      const table = createMockCollectionItem({
+        id: 456,
+        model: "table",
+        name: "Orders table",
+        collection_id: TEST_COLLECTION.id,
+      });
+      const question = createMockCollectionItem({
+        id: 789,
+        model: "card",
+        name: "Orders by month",
+        collection_id: TEST_COLLECTION.id,
+      });
+
+      await setup({
+        pathname: Urls.collection(TEST_COLLECTION),
+        route: "/collection/:slug",
+        testCollectionItems: [dashboard, table, question],
+      });
+
+      expect(
+        await screen.findByRole("button", { name: /Operations dashboard/i }),
+      ).not.toHaveAttribute("href");
+      expect(
+        screen.getByRole("button", { name: /Orders table/i }),
+      ).not.toHaveAttribute("href");
+      expect(
+        screen.getByRole("button", { name: /Orders by month/i }),
+      ).not.toHaveAttribute("href");
+    });
+
+    it("should keep dashboards visible after navigating to another collection", async () => {
       const dashboard = createMockCollectionItem({
         id: 123,
         model: "dashboard",
@@ -297,8 +325,56 @@ describe("nav > containers > MainNavbar", () => {
       });
 
       expect(
-        await screen.findByRole("link", { name: /Revenue dashboard/i }),
-      ).toHaveAttribute("href", "/dashboard/123-revenue-dashboard");
+        await screen.findByRole("button", { name: /Revenue dashboard/i }),
+      ).toBeInTheDocument();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Your personal collection/i }),
+      );
+
+      expect(
+        await screen.findByRole("treeitem", {
+          name: /Your personal collection/i,
+        }),
+      ).toHaveAttribute("aria-selected", "true");
+      expect(
+        screen.getByRole("button", { name: /Revenue dashboard/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("should collapse a selected collection with dashboards on the first click", async () => {
+      const dashboard = createMockCollectionItem({
+        id: 123,
+        model: "dashboard",
+        name: "Revenue dashboard",
+        collection_id: TEST_COLLECTION.id,
+      });
+
+      await setup({
+        pathname: "/dashboard/123",
+        route: "/:entity/:slug",
+        openDashboard: createMockDashboard({
+          id: 123,
+          name: "Revenue dashboard",
+          collection_id: TEST_COLLECTION.id as number,
+        }),
+        testCollectionItems: [dashboard],
+      });
+
+      expect(
+        await screen.findByRole("button", { name: /Revenue dashboard/i }),
+      ).toBeInTheDocument();
+
+      await userEvent.click(
+        screen.getByRole("button", { name: /Test collection/i }),
+      );
+
+      expect(
+        await screen.findByRole("treeitem", { name: /Test collection/i }),
+      ).toHaveAttribute("aria-selected", "true");
+      expect(
+        screen.queryByRole("button", { name: /Revenue dashboard/i }),
+      ).not.toBeInTheDocument();
     });
 
     it("should highlight personal collection if selected", async () => {

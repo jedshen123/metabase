@@ -96,6 +96,17 @@ export const SidebarTrigger = styled.button<{
   }
 `;
 
+export const SidebarMask = styled.div<{ isOpen: boolean }>`
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: rgb(0 0 0 / 25%);
+  backdrop-filter: blur(1px);
+  opacity: ${(props) => (props.isOpen ? 1 : 0)};
+  pointer-events: ${(props) => (props.isOpen ? "auto" : "none")};
+  transition: opacity 180ms ease;
+`;
+
 export const NavRoot = styled.nav<{ isOpen: boolean }>`
   display: flex;
   flex-direction: column;
@@ -104,7 +115,7 @@ export const NavRoot = styled.nav<{ isOpen: boolean }>`
   height: 100%;
   background-color: transparent;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   width: ${NAV_SIDEBAR_WIDTH};
 
   ${breakpointMaxSmall} {
@@ -117,14 +128,16 @@ export const SidebarContentRoot = styled.div`
   flex: 1;
   flex-direction: column;
   justify-content: space-between;
+  min-height: 0;
   min-width: ${NAV_SIDEBAR_WIDTH};
+  overflow: hidden;
 `;
 
 export const SidebarHeader = styled.div<{ isOpen: boolean }>`
   display: flex;
   flex-direction: column;
   gap: var(--mantine-spacing-md);
-  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md)
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-md)
     var(--mantine-spacing-sm);
   width: ${NAV_SIDEBAR_WIDTH};
   opacity: ${(props) => (props.isOpen ? 1 : 0.94)};
@@ -133,7 +146,7 @@ export const SidebarHeader = styled.div<{ isOpen: boolean }>`
 export const SidebarLogoLink = styled(Link)`
   display: flex;
   align-items: center;
-  min-height: 2.5rem;
+  min-height: 2rem;
   width: fit-content;
   max-width: calc(${NAV_SIDEBAR_WIDTH} - 2rem);
   overflow: hidden;
@@ -149,6 +162,9 @@ export const SidebarActions = styled.div`
 
 export const SidebarBody = styled.div`
   flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 `;
 
 export const SidebarFooter = styled.div<{ isOpen: boolean }>`
@@ -158,6 +174,7 @@ export const SidebarFooter = styled.div<{ isOpen: boolean }>`
   gap: var(--mantine-spacing-sm);
   padding: var(--mantine-spacing-md);
   border-top: 1px solid var(--mb-color-border);
+  flex-shrink: 0;
   width: ${NAV_SIDEBAR_WIDTH};
 `;
 

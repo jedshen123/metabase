@@ -1,5 +1,6 @@
 import type { KeyboardEvent } from "react";
 import { forwardRef, useCallback, useEffect, useRef } from "react";
+import { push } from "react-router-redux";
 import { usePrevious } from "react-use";
 
 import { CollectionDropTarget } from "metabase/common/components/dnd/CollectionDropTarget";
@@ -10,7 +11,7 @@ import type {
 } from "metabase/common/components/tree/types";
 import { getCollectionIcon } from "metabase/entities/collections/utils";
 import { getIcon } from "metabase/lib/icon";
-import { useSelector } from "metabase/lib/redux";
+import { useDispatch, useSelector } from "metabase/lib/redux";
 import * as Urls from "metabase/lib/urls";
 import { PLUGIN_COLLECTIONS } from "metabase/plugins";
 import { getIsTenantUser } from "metabase/selectors/user";
@@ -19,7 +20,7 @@ import type { Collection, CollectionItem } from "metabase-types/api";
 import {
   CollectionNodeRoot,
   ExpandToggleButton,
-  FullWidthLink,
+  FullWidthButton,
   NameContainer,
   SidebarIcon,
 } from "./SidebarItems.styled";
@@ -36,23 +37,31 @@ type Props = DroppableProps &
 
 const TIME_BEFORE_EXPANDING_ON_HOVER = 600;
 
-type DashboardTreeItem = ITreeNodeItem<CollectionItem> & {
-  data: CollectionItem & { model: "dashboard" };
+type CollectionAssetTreeItem = ITreeNodeItem<CollectionItem> & {
+  data: CollectionItem;
 };
 
-function isDashboardTreeItem(item: ITreeNodeItem): item is DashboardTreeItem {
-  return (
-    (item.data as Partial<CollectionItem> | undefined)?.model === "dashboard"
+function isCollectionAssetTreeItem(
+  item: ITreeNodeItem,
+): item is CollectionAssetTreeItem {
+  return ["card", "dashboard", "table"].includes(
+    (item.data as Partial<CollectionItem> | undefined)?.model ?? "",
   );
 }
 
-const SidebarDashboardLink = forwardRef<HTMLLIElement, TreeNodeProps>(
-  function SidebarDashboardLink(
+const SidebarCollectionAssetLink = forwardRef<HTMLLIElement, TreeNodeProps>(
+  function SidebarCollectionAssetLink(
     { item, depth, onSelect, isSelected, rightSection }: TreeNodeProps,
     ref,
   ) {
-    const dashboard = item.data as CollectionItem;
-    const icon = getIcon(dashboard);
+    const collectionItem = item.data as CollectionItem;
+    const icon = getIcon(collectionItem);
+    const dispatch = useDispatch();
+
+    const handleClick = useCallback(() => {
+      onSelect?.();
+      dispatch(push(Urls.modelToUrl(collectionItem)));
+    }, [collectionItem, dispatch, onSelect]);
 
     return (
       <CollectionNodeRoot
@@ -61,6 +70,7 @@ const SidebarDashboardLink = forwardRef<HTMLLIElement, TreeNodeProps>(
         aria-selected={isSelected}
         isSelected={isSelected}
         hasDefaultIconStyle
+        data-sidebar-item-type={collectionItem.model}
         ref={ref}
       >
         <ExpandToggleButton hidden>
@@ -70,17 +80,17 @@ const SidebarDashboardLink = forwardRef<HTMLLIElement, TreeNodeProps>(
             size={12}
           />
         </ExpandToggleButton>
-        <FullWidthLink
-          to={Urls.dashboard(dashboard)}
-          onClick={onSelect}
-          onKeyDown={undefined}
+        <FullWidthButton
+          type="button"
+          isSelected={isSelected}
+          onClick={handleClick}
         >
           <TreeNode.IconContainer transparent={false}>
             <SidebarIcon {...icon} isSelected={isSelected} />
           </TreeNode.IconContainer>
-          <NameContainer>{dashboard.name}</NameContainer>
+          <NameContainer>{collectionItem.name}</NameContainer>
           {rightSection?.(item)}
-        </FullWidthLink>
+        </FullWidthButton>
       </CollectionNodeRoot>
     );
   },
@@ -103,6 +113,7 @@ const SidebarCollectionLink = forwardRef<HTMLLIElement, Props>(
   ) {
     const wasHovered = usePrevious(isHovered);
     const timeoutId = useRef<number>();
+    const dispatch = useDispatch();
     const isTenantUser = useSelector(getIsTenantUser);
 
     useEffect(() => {
@@ -120,6 +131,10 @@ const SidebarCollectionLink = forwardRef<HTMLLIElement, Props>(
     }, [wasHovered, isHovered, isExpanded, onToggleExpand]);
 
     const url = Urls.collection(collection);
+    const handleClick = useCallback(() => {
+      onSelect?.();
+      dispatch(push(url));
+    }, [dispatch, onSelect, url]);
 
     const onKeyDown = useCallback(
       (event: KeyboardEvent) => {
@@ -165,13 +180,18 @@ const SidebarCollectionLink = forwardRef<HTMLLIElement, Props>(
             size={12}
           />
         </ExpandToggleButton>
-        <FullWidthLink to={url} onClick={onSelect} onKeyDown={onKeyDown}>
+        <FullWidthButton
+          type="button"
+          isSelected={isSelected}
+          onClick={handleClick}
+          onKeyDown={onKeyDown}
+        >
           <TreeNode.IconContainer transparent={false}>
             <SidebarIcon {...icon} isSelected={isSelected} />
           </TreeNode.IconContainer>
           <NameContainer>{collection.name}</NameContainer>
           {rightSection?.(collection as unknown as ITreeNodeItem)}
-        </FullWidthLink>
+        </FullWidthButton>
       </CollectionNodeRoot>
     );
   },
@@ -182,8 +202,8 @@ const DroppableSidebarCollectionLink = forwardRef<HTMLLIElement, TreeNodeProps>(
     { item, ...props }: TreeNodeProps,
     ref,
   ) {
-    if (isDashboardTreeItem(item)) {
-      return <SidebarDashboardLink item={item} {...props} ref={ref} />;
+    if (isCollectionAssetTreeItem(item)) {
+      return <SidebarCollectionAssetLink item={item} {...props} ref={ref} />;
     }
 
     const collection = item as unknown as Collection;

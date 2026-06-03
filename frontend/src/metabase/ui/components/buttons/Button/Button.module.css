@@ -5,8 +5,15 @@
   font-family: var(--mb-default-font-family);
   padding-inline: rem(15px);
   overflow: hidden;
+  border-radius: var(--mantine-radius-sm);
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    color 120ms ease;
   line-height: 1.15; /* mimic line-height ratio from mantine v6 */
   font-size: var(--mantine-font-size-md);
+  font-weight: 600;
 
   &:active {
     transform: none; /* Remove Mantine's default pressed effect */
@@ -47,27 +54,35 @@
     color: var(--mb-color-text-primary);
     border-color: var(--mb-color-border);
     background-color: var(--mb-color-background-primary);
+    box-shadow: var(--mantine-shadow-xs);
 
     &[aria-pressed="true"],
     &:hover {
       color: var(--mb-color-text-hover);
+      border-color: var(--mb-color-border-strong);
       background-color: var(--mb-color-background-hover);
+      box-shadow: var(--mantine-shadow-sm);
     }
   }
 
   &[data-variant="filled"] {
     color: var(--mb-color-text-primary-inverse);
+    border-color: color-mix(in srgb, var(--button-bg) 92%, black);
+    box-shadow: var(--mantine-shadow-sm);
 
     &:hover {
-      border-color: alpha(var(--button-bg), 0.88);
-      background-color: alpha(var(--button-bg), 0.88);
+      border-color: color-mix(in srgb, var(--button-bg) 82%, black);
+      background-color: color-mix(in srgb, var(--button-bg) 92%, black);
+      box-shadow: var(--mantine-shadow-md);
     }
   }
 
   &[data-variant="subtle"] {
+    border-color: transparent;
+
     &:hover {
       color: alpha(var(--button-color), 0.88);
-      background-color: transparent;
+      background-color: var(--mb-color-background-hover);
     }
 
     &:disabled,
