@@ -115,7 +115,7 @@ export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
   &[data-sidebar-item-type="dashboard"],
   &[data-sidebar-item-type="table"] {
     color: var(--mb-color-text-primary);
-    font-size: 13px;
+    font-size: 11px;
     font-weight: ${(props) => (props.isSelected ? 500 : 400)};
     line-height: 1.4;
   }

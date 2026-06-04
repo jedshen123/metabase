@@ -156,7 +156,7 @@ function getCollectionAssetIcon(item: CollectionItem): IconProps {
     case "card":
       return { ...getIcon(item), color: "accent5" };
     case "dashboard":
-      return { name: "dashboard", color: "saturated-blue" };
+      return { name: "dashboard_outline", color: "success" };
     case "table":
       return { name: "table", color: "success" };
     default:

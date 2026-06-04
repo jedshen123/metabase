@@ -311,9 +311,9 @@ describe("nav > containers > MainNavbar", () => {
       expect(
         within(
           screen.getByRole("button", { name: /Operations dashboard/i }),
-        ).getByLabelText("dashboard icon"),
+        ).getByLabelText("dashboard_outline icon"),
       ).toHaveStyle({
-        color: "var(--mantine-color-saturated-blue-text)",
+        color: "var(--mantine-color-success-text)",
       });
       expect(
         screen.getByRole("button", { name: /Orders table/i }),
