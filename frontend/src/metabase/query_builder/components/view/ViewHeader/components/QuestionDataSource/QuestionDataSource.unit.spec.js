@@ -627,6 +627,6 @@ describe("QuestionDataSource", () => {
     const newQuestion = Question.create().setQuery(newQuery);
     setup({ card: newQuestion.card(), originalCard: originalQuestion.card() });
     expect(screen.getByText("SQL query")).toBeInTheDocument();
-    expect(getIcon("table2")).toBeInTheDocument();
+    expect(getIcon("bar")).toBeInTheDocument();
   });
 });

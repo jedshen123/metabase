@@ -1,11 +1,15 @@
 import { useDisclosure } from "@mantine/hooks";
 import type { MouseEvent } from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { t } from "ttag";
 import _ from "underscore";
 
 import ErrorBoundary from "metabase/ErrorBoundary";
-import { skipToken, useListCollectionItemsQuery } from "metabase/api";
+import {
+  collectionApi,
+  skipToken,
+  useListCollectionItemsQuery,
+} from "metabase/api";
 import {
   isExamplesCollection,
   isLibraryCollection,
@@ -24,7 +28,8 @@ import {
   getIsNewInstance,
 } from "metabase/home/selectors";
 import { isSmallScreen } from "metabase/lib/dom";
-import { useSelector } from "metabase/lib/redux";
+import { getIcon } from "metabase/lib/icon";
+import { useDispatch, useSelector } from "metabase/lib/redux";
 import * as Urls from "metabase/lib/urls";
 import { AppSwitcher } from "metabase/nav/components/AppSwitcher";
 import NewItemButton from "metabase/nav/components/NewItemButton";
@@ -36,8 +41,13 @@ import {
   getUser,
   getUserCanWriteToCollections,
 } from "metabase/selectors/user";
-import { ActionIcon, Icon, type IconName, Text, Tooltip } from "metabase/ui";
-import type { Bookmark, Collection, CollectionItem } from "metabase-types/api";
+import { ActionIcon, Icon, type IconProps, Text, Tooltip } from "metabase/ui";
+import type {
+  Bookmark,
+  Collection,
+  CollectionItem,
+  ListCollectionItemsRequest,
+} from "metabase-types/api";
 
 import {
   PaddedSidebarLink,
@@ -88,6 +98,13 @@ type Props = {
 const OTHER_USERS_COLLECTIONS_URL = Urls.otherUsersPersonalCollections();
 const SIDEBAR_COLLECTION_ITEM_LIMIT = 100;
 const SIDEBAR_COLLECTION_ITEM_MODELS = ["dashboard", "table", "card"] as const;
+const SIDEBAR_COLLECTION_ITEM_QUERY_OPTIONS = {
+  models: [...SIDEBAR_COLLECTION_ITEM_MODELS],
+  archived: false,
+  limit: SIDEBAR_COLLECTION_ITEM_LIMIT,
+  sort_column: "name",
+  sort_direction: "asc",
+} satisfies Omit<ListCollectionItemsRequest, "id">;
 
 type SidebarCollectionItemModel =
   (typeof SIDEBAR_COLLECTION_ITEM_MODELS)[number];
@@ -95,7 +112,7 @@ type SidebarCollectionItemModel =
 type CollectionAssetTreeItem = {
   id: string;
   name: string;
-  icon: IconName;
+  icon: IconProps;
   children: [];
   data: CollectionItem & { model: SidebarCollectionItemModel };
 };
@@ -134,16 +151,16 @@ function isSidebarCollectionItem(
   );
 }
 
-function getCollectionAssetIconName(item: CollectionItem): IconName {
+function getCollectionAssetIcon(item: CollectionItem): IconProps {
   switch (item.model) {
     case "card":
-      return "table2";
+      return { ...getIcon(item), color: "accent5" };
     case "dashboard":
-      return "dashboard";
+      return { name: "dashboard", color: "brand" };
     case "table":
-      return "table";
+      return { name: "table", color: "success" };
     default:
-      return "unknown";
+      return { name: "unknown" };
   }
 }
 
@@ -161,13 +178,15 @@ function buildCollectionAssetTreeItems(
     false,
     (item) => `${item.model}-${item.id}`,
   );
+  const sidebarItems = uniqueItems
+    .filter(isSidebarCollectionItem)
+    .filter((item) => !item.archived);
 
-  return uniqueItems
-    .filter((item) => isSidebarCollectionItem(item) && !item.archived)
+  return sidebarItems
     .map((item) => ({
       id: getCollectionAssetTreeItemId(item),
       name: item.name,
-      icon: getCollectionAssetIconName(item),
+      icon: getCollectionAssetIcon(item),
       children: [],
       data: item,
     }))
@@ -213,6 +232,23 @@ function addCollectionAssetsToCollectionTree(
   });
 }
 
+function getCollectionIds(
+  collections: CollectionTreeItem[],
+): Collection["id"][] {
+  const ids: Collection["id"][] = [];
+
+  for (const collection of collections) {
+    if (collection.id === "trash" || isRootTrashCollection(collection)) {
+      continue;
+    }
+
+    ids.push(collection.id);
+    ids.push(...getCollectionIds(collection.children));
+  }
+
+  return ids;
+}
+
 export function MainNavbarView({
   isOpen,
   bookmarks,
@@ -237,8 +273,11 @@ export function MainNavbarView({
   const isAtHomepageDashboard = useIsAtHomepageDashboard();
   const canWriteToCollections = useSelector(getUserCanWriteToCollections);
   const currentUser = useSelector(getUser);
+  const dispatch = useDispatch();
   const useTenants = useSetting("use-tenants");
   const isTenantUser = useSelector(getIsTenantUser);
+  const isMountedRef = useRef(true);
+  const requestedCollectionItemKeys = useRef<Set<string>>(new Set());
 
   const [
     addDataModalOpened,
@@ -257,16 +296,18 @@ export function MainNavbarView({
     selectedCollectionId != null
       ? {
           id: selectedCollectionId,
-          models: [...SIDEBAR_COLLECTION_ITEM_MODELS],
-          archived: false,
-          limit: SIDEBAR_COLLECTION_ITEM_LIMIT,
-          sort_column: "name",
-          sort_direction: "asc",
+          ...SIDEBAR_COLLECTION_ITEM_QUERY_OPTIONS,
         }
       : skipToken,
   );
   const [collectionItemsByCollectionId, setCollectionItemsByCollectionId] =
     useState<Record<string, CollectionItem[]>>({});
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (selectedCollectionId == null || selectedCollectionItems?.data == null) {
@@ -319,7 +360,9 @@ export function MainNavbarView({
 
       const regularCollections = collections.filter((c) => {
         const isNormalCollection =
-          !isRootTrashCollection(c) && !isExamplesCollection(c);
+          c.id !== "trash" &&
+          !isRootTrashCollection(c) &&
+          !isExamplesCollection(c);
         return isNormalCollection && !isLibraryCollection(c);
       });
 
@@ -366,6 +409,49 @@ export function MainNavbarView({
     [regularCollections, collectionItemsByCollectionId],
   );
 
+  const preloadCollectionIds = useMemo(
+    () => getCollectionIds(regularCollections),
+    [regularCollections],
+  );
+
+  useEffect(() => {
+    for (const collectionId of preloadCollectionIds) {
+      const cacheKey = getCollectionItemsCacheKey(collectionId);
+
+      if (
+        requestedCollectionItemKeys.current.has(cacheKey) ||
+        collectionItemsByCollectionId[cacheKey] != null
+      ) {
+        continue;
+      }
+
+      requestedCollectionItemKeys.current.add(cacheKey);
+
+      dispatch(
+        collectionApi.endpoints.listCollectionItems.initiate({
+          id: collectionId,
+          ...SIDEBAR_COLLECTION_ITEM_QUERY_OPTIONS,
+        }),
+      )
+        .unwrap()
+        .then((response) => {
+          if (!isMountedRef.current || response?.data == null) {
+            return;
+          }
+
+          setCollectionItemsByCollectionId(
+            (previousCollectionItemsByCollectionId) => ({
+              ...previousCollectionItemsByCollectionId,
+              [cacheKey]: response.data,
+            }),
+          );
+        })
+        .catch(() => {
+          requestedCollectionItemKeys.current.delete(cacheKey);
+        });
+    }
+  }, [collectionItemsByCollectionId, dispatch, preloadCollectionIds]);
+
   const selectedCollectionItemsInTree =
     selectedCollectionId != null
       ? collectionItemsByCollectionId[
@@ -383,7 +469,10 @@ export function MainNavbarView({
     );
 
   const selectedCollectionTreeItemId =
-    hasSelectedAssetInTree && selectedAssetItem?.id != null
+    hasSelectedAssetInTree &&
+    selectedAssetItem?.id != null &&
+    (selectedAssetItem.type === "card" ||
+      selectedAssetItem.type === "dashboard")
       ? getCollectionAssetTreeItemId({
           id: selectedAssetItem.id,
           model: selectedAssetItem.type,
@@ -438,6 +527,7 @@ export function MainNavbarView({
                       selectedId={collectionItem?.id}
                       onSelect={onItemSelect}
                       TreeNode={SidebarCollectionLink}
+                      initiallyExpanded
                       role="tree"
                       aria-label="examples-collection-tree"
                     />
@@ -518,6 +608,7 @@ export function MainNavbarView({
                     selectedId={selectedCollectionTreeItemId}
                     onSelect={onItemSelect}
                     TreeNode={SidebarCollectionLink}
+                    initiallyExpanded
                     role="tree"
                     aria-label="collection-tree"
                   />
@@ -553,6 +644,7 @@ export function MainNavbarView({
                   selectedId={collectionItem?.id}
                   onSelect={onItemSelect}
                   TreeNode={SidebarCollectionLink}
+                  initiallyExpanded
                   role="tree"
                 />
               </ErrorBoundary>

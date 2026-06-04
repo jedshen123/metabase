@@ -43,8 +43,10 @@ export const DefaultItemRenderer = ({
     typeof onToggleSelected === "function";
 
   const icon = getIcon(item);
-  if (item.model === "card" || item.archived) {
+  if (item.archived) {
     icon.color = "text-tertiary";
+  } else if (item.model === "card") {
+    icon.color = "accent5";
   }
 
   const handleSelectionToggled = useCallback(() => {

@@ -23,7 +23,8 @@
 
 .DashboardHeaderContainer {
   position: relative;
-  z-index: 2;
+  /* Keep the collapsed header toggle above the parameter panel, which has z-index: 3. */
+  z-index: 4;
   transition: var(--transition-theme-change);
 
   &:not(.noBorder) {

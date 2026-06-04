@@ -8,13 +8,14 @@ import type { BoxProps } from "metabase/ui";
 import { TreeNode as DefaultTreeNode } from "./TreeNode";
 import { TreeNodeList } from "./TreeNodeList";
 import type { ITreeNodeItem } from "./types";
-import { getInitialExpandedIds } from "./utils";
+import { getAllExpandableIds, getInitialExpandedIds } from "./utils";
 
 interface TreeProps<TData = unknown> extends Omit<BoxProps, "children"> {
   data: ITreeNodeItem<TData>[];
   selectedId?: ITreeNodeItem<TData>["id"];
   emptyState?: React.ReactNode;
   initialExpandedIds?: ITreeNodeItem<TData>["id"][];
+  initiallyExpanded?: boolean;
   role?: string;
   onSelect?: (item: ITreeNodeItem<TData>) => void;
   rightSection?: (item: ITreeNodeItem<TData>) => React.ReactNode;
@@ -27,12 +28,16 @@ function BaseTree<TData = unknown>({
   role = "menu",
   emptyState = null,
   initialExpandedIds,
+  initiallyExpanded = false,
   onSelect,
   TreeNode = DefaultTreeNode,
   rightSection,
   ...boxProps
 }: TreeProps<TData>) {
   const [expandedIds, setExpandedIds] = useState(() => {
+    if (initiallyExpanded) {
+      return new Set(getAllExpandableIds(data));
+    }
     if (initialExpandedIds) {
       return new Set(initialExpandedIds);
     }
@@ -47,10 +52,21 @@ function BaseTree<TData = unknown>({
   const prevData = usePrevious(data);
 
   useEffect(() => {
+    const dataHasChanged = !_.isEqual(data, prevData);
+
+    if (initiallyExpanded && dataHasChanged) {
+      setExpandedIds((prev) => {
+        const autoExpandedIds = getAllExpandableIds(data).filter(
+          (id) => !manuallyCollapsedIds.has(id),
+        );
+        return new Set([...prev, ...autoExpandedIds]);
+      });
+      return;
+    }
+
     if (!selectedId) {
       return;
     }
-    const dataHasChanged = !_.isEqual(data, prevData);
     const selectedItemChanged =
       previousSelectedId !== selectedId && !expandedIds.has(selectedId);
 
@@ -69,6 +85,7 @@ function BaseTree<TData = unknown>({
     previousSelectedId,
     expandedIds,
     manuallyCollapsedIds,
+    initiallyExpanded,
   ]);
 
   const handleToggleExpand = useCallback(
@@ -92,12 +109,21 @@ function BaseTree<TData = unknown>({
     return <React.Fragment>{emptyState}</React.Fragment>;
   }
 
+  const effectiveExpandedIds = initiallyExpanded
+    ? new Set([
+        ...expandedIds,
+        ...getAllExpandableIds(data).filter(
+          (id) => !manuallyCollapsedIds.has(id),
+        ),
+      ])
+    : expandedIds;
+
   return (
     <TreeNodeList
       role={role}
       items={data}
       TreeNode={TreeNode}
-      expandedIds={expandedIds}
+      expandedIds={effectiveExpandedIds}
       selectedId={selectedId}
       depth={0}
       onSelect={onSelect}

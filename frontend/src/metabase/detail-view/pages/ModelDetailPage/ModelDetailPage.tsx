@@ -14,7 +14,7 @@ import {
 } from "metabase/detail-view/utils";
 import { useDispatch, useSelector } from "metabase/lib/redux";
 import * as Urls from "metabase/lib/urls";
-import { closeNavbar, setDetailView } from "metabase/redux/app";
+import { setDetailView } from "metabase/redux/app";
 import { getIsNavbarOpen } from "metabase/selectors/app";
 import { getMetadata } from "metabase/selectors/metadata";
 import { extractRemappedColumns } from "metabase/visualizations";
@@ -80,10 +80,6 @@ export function ModelDetailPage({ params }: Props) {
 
   const dispatch = useDispatch();
   const isNavBarOpen = useSelector(getIsNavbarOpen);
-
-  useEffect(() => {
-    dispatch(closeNavbar());
-  }, [dispatch]);
 
   useEffect(() => {
     if (table) {

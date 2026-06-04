@@ -79,6 +79,7 @@ export function NavbarLibrarySection({
             selectedId={selectedId}
             onSelect={onItemSelect}
             TreeNode={SidebarCollectionLink}
+            initiallyExpanded
             role="tree"
             aria-label="library-collection-tree"
             rightSection={(item) =>

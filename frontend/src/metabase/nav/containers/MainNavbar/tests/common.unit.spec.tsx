@@ -5,8 +5,10 @@ import { screen, within } from "__support__/ui";
 import { createMockModelResult } from "metabase/browse/models/test-utils";
 import { ROOT_COLLECTION } from "metabase/entities/collections";
 import * as Urls from "metabase/lib/urls";
+import registerVisualizations from "metabase/visualizations/register";
 import {
   createMockCard,
+  createMockCollection,
   createMockCollectionItem,
   createMockDashboard,
   createMockUser,
@@ -20,6 +22,10 @@ import {
 } from "./setup";
 
 describe("nav > containers > MainNavbar", () => {
+  beforeAll(() => {
+    registerVisualizations();
+  });
+
   afterEach(() => {
     jest.restoreAllMocks();
   });
@@ -353,6 +359,81 @@ describe("nav > containers > MainNavbar", () => {
         "Orders by month",
         "Orders table",
       ]);
+    });
+
+    it("should use the card visualization icon for collection assets", async () => {
+      const question = createMockCollectionItem({
+        id: 789,
+        model: "card",
+        name: "Orders trend",
+        display: "line",
+        collection_id: TEST_COLLECTION.id,
+      });
+
+      await setup({
+        pathname: Urls.collection(TEST_COLLECTION),
+        route: "/collection/:slug",
+        testCollectionItems: [question],
+      });
+
+      const questionButton = await screen.findByRole("button", {
+        name: /Orders trend/i,
+      });
+
+      const questionIcon = within(questionButton).getByLabelText("line icon");
+
+      expect(questionIcon).toBeInTheDocument();
+      expect(questionIcon).toHaveStyle({
+        color: "var(--mantine-color-accent5-text)",
+      });
+      expect(
+        within(questionButton).queryByLabelText("bar icon"),
+      ).not.toBeInTheDocument();
+    });
+
+    it("should preload collection assets before selecting a collection", async () => {
+      const dashboard = createMockCollectionItem({
+        id: 123,
+        model: "dashboard",
+        name: "Operations dashboard",
+        collection_id: TEST_COLLECTION.id,
+      });
+
+      await setup({
+        pathname: "/",
+        route: "/",
+        testCollectionItems: [dashboard],
+      });
+
+      expect(
+        await screen.findByRole("button", { name: /Operations dashboard/i }),
+      ).toBeInTheDocument();
+    });
+
+    it("should hide collections with ignored names", async () => {
+      await setup({
+        collections: [
+          TEST_COLLECTION,
+          createMockCollection({
+            id: 3,
+            name: "过程文件 archive",
+          }),
+          createMockCollection({
+            id: 4,
+            name: "下线 reports",
+          }),
+        ],
+      });
+
+      expect(
+        screen.getByRole("treeitem", { name: /Test collection/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByRole("treeitem", { name: /过程文件 archive/i }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("treeitem", { name: /下线 reports/i }),
+      ).not.toBeInTheDocument();
     });
 
     it("should keep dashboards visible after navigating to another collection", async () => {

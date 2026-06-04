@@ -15,8 +15,15 @@ import { color } from "metabase/ui/utils/colors";
 
 export const SidebarIcon = styled(
   forwardRef<SVGSVGElement, IconProps & { isSelected: boolean }>(
-    function SidebarIcon({ isSelected, ...props }, ref) {
-      return <Icon {...props} size={props.size ?? 16} ref={ref} />;
+    function SidebarIcon({ color, isSelected, ...props }, ref) {
+      return (
+        <Icon
+          {...props}
+          c={color ?? props.c}
+          size={props.size ?? 16}
+          ref={ref}
+        />
+      );
     },
   ),
 )<{
@@ -59,8 +66,8 @@ const activeColorCSS = css`
   color: var(--mb-color-brand);
 `;
 
-function getTextColor(isSelected: boolean) {
-  return isSelected ? color("text-brand") : color("text-primary");
+function getTextColor() {
+  return color("text-primary");
 }
 
 type NodeRootProps = ComponentProps<typeof TreeNode.Root> & {
@@ -72,19 +79,15 @@ export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
   min-height: 32px;
   margin: 1px 0;
   gap: 2px;
-  color: ${(props) => getTextColor(props.isSelected)};
+  color: ${getTextColor()};
   background-color: ${(props) =>
     props.isSelected ? "var(--mb-color-background-selected)" : "transparent"};
   padding-left: ${(props) => `calc(${props.depth}rem + 2px)`};
   border-radius: var(--mantine-radius-sm);
-  box-shadow: ${(props) =>
-    props.isSelected
-      ? "inset 3px 0 0 var(--mb-color-brand)"
-      : "inset 3px 0 0 transparent"};
-  font-weight: 500;
+  box-shadow: none;
+  font-weight: ${(props) => (props.isSelected ? 700 : 500)};
   transition:
     background-color 120ms ease,
-    box-shadow 120ms ease,
     color 120ms ease;
 
   ${(props) =>
@@ -104,18 +107,18 @@ export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
   &[data-sidebar-item-type="card"],
   &[data-sidebar-item-type="dashboard"],
   &[data-sidebar-item-type="table"] {
-    color: ${(props) =>
-      props.isSelected
-        ? "var(--mb-color-text-brand)"
-        : "var(--mb-color-text-secondary)"};
-    font-weight: 500;
+    color: var(--mb-color-text-primary);
+    font-size: 13px;
+  }
+
+  &[data-sidebar-item-type="collection"] {
+    color: var(--mb-color-text-primary);
+    font-size: 14px;
   }
 
   &:focus-within {
     outline: none;
-    box-shadow:
-      inset 3px 0 0 var(--mb-color-brand),
-      0 0 0 2px var(--mb-color-focus);
+    box-shadow: 0 0 0 2px var(--mb-color-focus);
   }
 
   ${ExpandToggleButton} {
@@ -129,11 +132,8 @@ export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
 
   &:hover {
     background-color: var(--mb-color-background-hover);
-    color: var(--mb-color-text-hover);
-    box-shadow: ${(props) =>
-      props.isSelected
-        ? "inset 3px 0 0 var(--mb-color-brand)"
-        : "inset 3px 0 0 var(--mb-color-border-subtle)"};
+    color: var(--mb-color-text-primary);
+    box-shadow: none;
 
     ${ExpandToggleButton} {
       color: var(--mb-color-brand);
@@ -173,11 +173,11 @@ export const FullWidthButton = styled.button<{ isSelected: boolean }>`
   ${itemContentStyle}
   ${TreeNode.NameContainer} {
     font-weight: inherit;
-    color: ${(props) => (props.isSelected ? color("text-brand") : "inherit")};
+    color: inherit;
     text-align: start;
 
     &:hover {
-      color: var(--mb-color-brand);
+      color: inherit;
     }
   }
 

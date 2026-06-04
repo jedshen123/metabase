@@ -42,6 +42,29 @@ import { MainNavbarView } from "./MainNavbarView";
 
 type NavbarModal = "MODAL_NEW_COLLECTION" | null;
 
+const HIDDEN_COLLECTION_NAME_PARTS = ["过程文件", "下线"];
+
+function shouldHideCollectionInNavbar(collection: Collection) {
+  return HIDDEN_COLLECTION_NAME_PARTS.some((namePart) =>
+    collection.name.includes(namePart),
+  );
+}
+
+function filterHiddenCollections(
+  collections: CollectionTreeItem[],
+): CollectionTreeItem[] {
+  return collections.flatMap((collection) => {
+    if (shouldHideCollectionInNavbar(collection)) {
+      return [];
+    }
+
+    return {
+      ...collection,
+      children: filterHiddenCollections(collection.children),
+    };
+  });
+}
+
 function mapStateToProps(state: State, { databases = [] }: DatabaseProps) {
   return {
     currentUser: getUser(state),
@@ -147,9 +170,9 @@ function MainNavbarContainer({
         icon: getCollectionIcon(rootCollection, { isTenantUser }),
         children: [],
       };
-      return [root, ...tree];
+      return filterHiddenCollections([root, ...tree]);
     } else {
-      return tree;
+      return filterHiddenCollections(tree);
     }
   }, [rootCollection, trashCollection, collections, currentUser, isTenantUser]);
 

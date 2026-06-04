@@ -24,6 +24,7 @@ import { ROOT_COLLECTION } from "metabase/entities/collections";
 import * as domUtils from "metabase/lib/dom";
 import type {
   Card,
+  Collection,
   CollectionItem,
   Dashboard,
   DashboardId,
@@ -63,7 +64,9 @@ export type SetupOpts = {
   hasEmbeddingFeature?: boolean;
   applicationName?: string;
   activeUsersCount?: number;
+  collections?: Collection[];
   testCollectionItems?: CollectionItem[];
+  collectionItemsByCollectionId?: Record<string, CollectionItem[]>;
 };
 
 export const PERSONAL_COLLECTION_BASE = createMockCollection({
@@ -96,7 +99,11 @@ export async function setup({
   hasWhitelabelToken,
   hasEmbeddingFeature,
   applicationName = "Metabase",
+  collections = [TEST_COLLECTION],
   testCollectionItems = [],
+  collectionItemsByCollectionId = {
+    [String(TEST_COLLECTION.id)]: testCollectionItems,
+  },
 }: SetupOpts = {}) {
   if (isEmbeddingIframe) {
     jest.spyOn(domUtils, "isWithinIframe").mockReturnValue(true);
@@ -129,8 +136,6 @@ export async function setup({
     can_write: user?.is_superuser || canCurateRootCollection,
   });
 
-  const collections = [TEST_COLLECTION];
-
   const personalCollection = user
     ? createMockCollection({
         ...PERSONAL_COLLECTION_BASE,
@@ -140,16 +145,19 @@ export async function setup({
 
   if (personalCollection && user) {
     user.personal_collection_id = 1;
-    collections.push(personalCollection);
   }
 
+  const allCollections = personalCollection
+    ? [...collections, personalCollection]
+    : collections;
+
   setupCollectionsEndpoints({
-    collections,
+    collections: allCollections,
     rootCollection: OUR_ANALYTICS,
     currentUserId: user?.id,
   });
   setupCollectionByIdEndpoint({
-    collections: [PERSONAL_COLLECTION_BASE, TEST_COLLECTION],
+    collections: [PERSONAL_COLLECTION_BASE, ...allCollections],
   });
   setupDatabasesEndpoints(databases);
   setupSearchEndpoints(models);
@@ -157,14 +165,11 @@ export async function setup({
     collection: createMockCollection(OUR_ANALYTICS),
     collectionItems: [],
   });
-  setupCollectionItemsEndpoint({
-    collection: TEST_COLLECTION,
-    collectionItems: testCollectionItems,
-  });
-  if (personalCollection) {
+  for (const collection of allCollections) {
     setupCollectionItemsEndpoint({
-      collection: personalCollection,
-      collectionItems: [],
+      collection,
+      collectionItems:
+        collectionItemsByCollectionId[String(collection.id)] ?? [],
     });
   }
 

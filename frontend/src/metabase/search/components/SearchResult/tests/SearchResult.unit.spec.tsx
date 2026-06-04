@@ -68,7 +68,7 @@ describe("SearchResult", () => {
     expect(
       screen.getByText(TEST_RESULT_QUESTION.description as string),
     ).toBeInTheDocument();
-    expect(getIcon("table2")).toBeInTheDocument();
+    expect(getIcon("bar")).toBeInTheDocument();
   });
 
   it("renders a search result collection item", () => {
