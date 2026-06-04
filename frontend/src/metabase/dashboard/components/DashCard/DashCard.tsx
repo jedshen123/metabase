@@ -337,6 +337,8 @@ function DashCardInner({
       <Box
         data-testid="dashcard"
         data-dashcard-key={dashcard.id}
+        data-mb-dashboard-card
+        data-mb-dashcard-id={dashcard.id}
         className={cx(
           S.DashboardCardRoot,
           S.DashCardRoot,

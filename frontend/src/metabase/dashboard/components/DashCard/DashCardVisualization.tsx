@@ -600,6 +600,7 @@ export function DashCardVisualization({
       className={cx(CS.flexFull, CS.fullHeight, {
         [CS.pointerEventsNone]: isEditingDashboardLayout,
       })}
+      data-mb-visualization
       ref={containerRef}
     >
       <EmbeddingEntityContextProvider uuid={uuid ?? null} token={token ?? null}>

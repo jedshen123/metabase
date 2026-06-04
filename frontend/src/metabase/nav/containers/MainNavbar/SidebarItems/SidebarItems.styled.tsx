@@ -80,12 +80,19 @@ export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
   margin: 1px 0;
   gap: 2px;
   color: ${getTextColor()};
+  font-family:
+    var(--mb-default-font-family),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
   background-color: ${(props) =>
     props.isSelected ? "var(--mb-color-background-selected)" : "transparent"};
   padding-left: ${(props) => `calc(${props.depth}rem + 2px)`};
   border-radius: var(--mantine-radius-sm);
   box-shadow: none;
-  font-weight: ${(props) => (props.isSelected ? 700 : 500)};
+  font-weight: ${(props) => (props.isSelected ? 500 : 400)};
+  line-height: 1.4;
   transition:
     background-color 120ms ease,
     color 120ms ease;
@@ -109,11 +116,17 @@ export const NodeRoot = styled(TreeNode.Root)<NodeRootProps>`
   &[data-sidebar-item-type="table"] {
     color: var(--mb-color-text-primary);
     font-size: 13px;
+    font-weight: ${(props) => (props.isSelected ? 500 : 400)};
+    line-height: 1.4;
   }
 
   &[data-sidebar-item-type="collection"] {
-    color: var(--mb-color-text-primary);
-    font-size: 14px;
+    color: var(--mb-color-text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.4;
+    text-transform: none;
   }
 
   &:focus-within {

@@ -1,6 +1,8 @@
 import userEvent from "@testing-library/user-event";
 
 import { screen } from "__support__/ui";
+import { setDashboardCustomCssInCaveats } from "metabase/dashboard/utils/custom-css";
+import { createMockDashboard } from "metabase-types/api/mocks";
 
 import { setup } from "./setup";
 
@@ -27,6 +29,21 @@ describe("DashboardSettingsSidebar", () => {
   it("should show dashboard auto-apply filter toggle", async () => {
     await setup();
     expect(screen.getByText("Auto-apply filters")).toBeInTheDocument();
+  });
+
+  it("should show dashboard css editor", async () => {
+    await setup({
+      dashboard: createMockDashboard({
+        caveats: setDashboardCustomCssInCaveats(
+          null,
+          "[data-mb-dashboard-card] { border-radius: 12px; }",
+        ),
+      }),
+    });
+
+    expect(screen.getByLabelText("CSS editor")).toHaveValue(
+      "[data-mb-dashboard-card] { border-radius: 12px; }",
+    );
   });
 
   it("should not render caching section in OSS", async () => {

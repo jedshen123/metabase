@@ -8,6 +8,11 @@ import DashboardS from "metabase/css/dashboard.module.css";
 import { DashboardHeader } from "metabase/dashboard/components/DashboardHeader";
 import { useDashboardContext } from "metabase/dashboard/context";
 import { getIsHeaderVisible } from "metabase/dashboard/selectors";
+import {
+  getDashboardCssScope,
+  getDashboardCustomCss,
+  getScopedDashboardCustomCss,
+} from "metabase/dashboard/utils/custom-css";
 import { isEmbeddingSdk } from "metabase/embedding-sdk/config";
 import { useSelector } from "metabase/lib/redux";
 import { FilterApplyToast } from "metabase/parameters/components/FilterApplyToast";
@@ -58,6 +63,11 @@ const DashboardDefaultView = ({ className }: { className?: string }) => {
 
   const isEmpty = !dashboardHasCards || (dashboardHasCards && !tabHasCards);
   const hasTabs = dashboard.tabs && dashboard.tabs.length > 1;
+  const dashboardCssScope = getDashboardCssScope(dashboard.id);
+  const dashboardCustomCss = getDashboardCustomCss(dashboard);
+  const scopedDashboardCustomCss = dashboardCustomCss
+    ? getScopedDashboardCustomCss(dashboardCustomCss, dashboardCssScope)
+    : "";
 
   // Embedding SDK has parent containers that requires dashboard to be full height to avoid double scrollbars.
   const isFullHeight = isEditing || isSharing || isEmbeddingSdk();
@@ -78,7 +88,13 @@ const DashboardDefaultView = ({ className }: { className?: string }) => {
       w="100%"
       flex="1 0 auto"
       data-testid="dashboard"
+      data-mb-dashboard-id={dashboard.id}
+      data-mb-dashboard-css-scope={dashboardCssScope}
     >
+      {scopedDashboardCustomCss && (
+        <style nonce={window.MetabaseNonce}>{scopedDashboardCustomCss}</style>
+      )}
+
       {dashboard.archived && <DashboardArchivedEntityBanner />}
 
       <Box

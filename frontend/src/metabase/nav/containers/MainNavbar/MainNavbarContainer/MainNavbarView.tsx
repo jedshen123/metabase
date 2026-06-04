@@ -156,7 +156,7 @@ function getCollectionAssetIcon(item: CollectionItem): IconProps {
     case "card":
       return { ...getIcon(item), color: "accent5" };
     case "dashboard":
-      return { name: "dashboard", color: "brand" };
+      return { name: "dashboard", color: "saturated-blue" };
     case "table":
       return { name: "table", color: "success" };
     default:
@@ -183,13 +183,15 @@ function buildCollectionAssetTreeItems(
     .filter((item) => !item.archived);
 
   return sidebarItems
-    .map((item) => ({
-      id: getCollectionAssetTreeItemId(item),
-      name: item.name,
-      icon: getCollectionAssetIcon(item),
-      children: [],
-      data: item,
-    }))
+    .map(
+      (item): CollectionAssetTreeItem => ({
+        id: getCollectionAssetTreeItemId(item),
+        name: item.name,
+        icon: getCollectionAssetIcon(item),
+        children: [],
+        data: item,
+      }),
+    )
     .sort(
       (a, b) =>
         getCollectionAssetSortGroup(a.data) -

@@ -309,6 +309,13 @@ describe("nav > containers > MainNavbar", () => {
         await screen.findByRole("button", { name: /Operations dashboard/i }),
       ).not.toHaveAttribute("href");
       expect(
+        within(
+          screen.getByRole("button", { name: /Operations dashboard/i }),
+        ).getByLabelText("dashboard icon"),
+      ).toHaveStyle({
+        color: "var(--mantine-color-saturated-blue-text)",
+      });
+      expect(
         screen.getByRole("button", { name: /Orders table/i }),
       ).not.toHaveAttribute("href");
       expect(
