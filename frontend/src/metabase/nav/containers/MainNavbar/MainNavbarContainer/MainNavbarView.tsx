@@ -147,6 +147,12 @@ function getCollectionAssetIconName(item: CollectionItem): IconName {
   }
 }
 
+function getCollectionAssetSortGroup(item: {
+  model: SidebarCollectionItemModel;
+}) {
+  return item.model === "dashboard" ? 0 : 1;
+}
+
 function buildCollectionAssetTreeItems(
   collectionItems: CollectionItem[] = [],
 ): CollectionAssetTreeItem[] {
@@ -164,7 +170,12 @@ function buildCollectionAssetTreeItems(
       icon: getCollectionAssetIconName(item),
       children: [],
       data: item,
-    }));
+    }))
+    .sort(
+      (a, b) =>
+        getCollectionAssetSortGroup(a.data) -
+        getCollectionAssetSortGroup(b.data),
+    );
 }
 
 function addCollectionAssetsToCollectionTree(

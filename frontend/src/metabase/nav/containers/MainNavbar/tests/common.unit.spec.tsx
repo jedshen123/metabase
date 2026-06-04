@@ -310,6 +310,51 @@ describe("nav > containers > MainNavbar", () => {
       ).not.toHaveAttribute("href");
     });
 
+    it("should show dashboard assets before other asset types inside a collection", async () => {
+      const question = createMockCollectionItem({
+        id: 789,
+        model: "card",
+        name: "Orders by month",
+        collection_id: TEST_COLLECTION.id,
+      });
+      const table = createMockCollectionItem({
+        id: 456,
+        model: "table",
+        name: "Orders table",
+        collection_id: TEST_COLLECTION.id,
+      });
+      const dashboard = createMockCollectionItem({
+        id: 123,
+        model: "dashboard",
+        name: "Operations dashboard",
+        collection_id: TEST_COLLECTION.id,
+      });
+
+      await setup({
+        pathname: Urls.collection(TEST_COLLECTION),
+        route: "/collection/:slug",
+        testCollectionItems: [question, table, dashboard],
+      });
+
+      await screen.findByRole("button", { name: /Operations dashboard/i });
+
+      const tree = screen.getByRole("tree", { name: "collection-tree" });
+      const assetNames = within(tree)
+        .getAllByRole("button")
+        .map((button) => button.textContent)
+        .filter((name) =>
+          ["Operations dashboard", "Orders by month", "Orders table"].includes(
+            name ?? "",
+          ),
+        );
+
+      expect(assetNames).toEqual([
+        "Operations dashboard",
+        "Orders by month",
+        "Orders table",
+      ]);
+    });
+
     it("should keep dashboards visible after navigating to another collection", async () => {
       const dashboard = createMockCollectionItem({
         id: 123,
