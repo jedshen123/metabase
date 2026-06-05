@@ -176,4 +176,36 @@ describe("getPieChartModel", () => {
       ["\x00___OTHER___", 6],
     ]);
   });
+
+  it("should use dashboard chart colors for default slice colors", () => {
+    const chartModel = getPieChartModel(rawSeries, settings, [], {
+      ...renderingContext,
+      getChartColor: (index) => ["#4b6bff", "#7b3fa0"][index],
+    });
+
+    expect(chartModel.sliceTree.get("2000")?.color).toBe("#4b6bff");
+    expect(chartModel.sliceTree.get("1990")?.color).toBe("#7b3fa0");
+  });
+
+  it("should use dashboard chart colors for custom slice colors when forced", () => {
+    const chartModel = getPieChartModel(
+      rawSeries,
+      {
+        ...settings,
+        "pie.rows": settings["pie.rows"]?.map((row) => ({
+          ...row,
+          defaultColor: false,
+        })),
+      },
+      [],
+      {
+        ...renderingContext,
+        getChartColor: (index) => ["#4b6bff", "#7b3fa0"][index],
+        shouldForceChartColors: () => true,
+      },
+    );
+
+    expect(chartModel.sliceTree.get("2000")?.color).toBe("#4b6bff");
+    expect(chartModel.sliceTree.get("1990")?.color).toBe("#7b3fa0");
+  });
 });

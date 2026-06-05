@@ -41,7 +41,9 @@ describe("getIcon", () => {
   });
 
   it("should return the correct icon for a dashboard", () => {
-    expect(getIcon({ model: "dashboard" })).toEqual({ name: "dashboard" });
+    expect(getIcon({ model: "dashboard" })).toEqual({
+      name: "dashboard_outline",
+    });
   });
 
   it("should return the correct icon for a card without a display type", () => {

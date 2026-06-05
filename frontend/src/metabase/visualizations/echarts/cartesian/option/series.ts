@@ -619,16 +619,25 @@ const buildEChartsLineAreaSeries = (
   labelFormatter: LabelFormatter | undefined,
   renderingContext: RenderingContext,
 ): LineSeriesOption => {
+  const symbolSize =
+    getPositiveChartStyleNumber(renderingContext, "line-symbol-size") ??
+    CHART_STYLE.symbolSize;
   const isSymbolVisible = getShowSymbol(
     chartDataDensity,
     chartWidth,
     seriesSettings,
+    symbolSize,
   );
 
   const blurOpacity = hasMultipleSeries ? CHART_STYLE.opacity.blur : 1;
-  const lineWidth = seriesSettings["line.size"]
-    ? LINE_SIZE[seriesSettings["line.size"]]
-    : LINE_SIZE.M;
+  const lineWidth =
+    getPositiveChartStyleNumber(renderingContext, "line-width") ??
+    (seriesSettings["line.size"]
+      ? LINE_SIZE[seriesSettings["line.size"]]
+      : LINE_SIZE.M);
+  const symbolBorderWidth =
+    getPositiveChartStyleNumber(renderingContext, "line-symbol-border-width") ??
+    lineWidth;
 
   return {
     emphasis: {
@@ -661,7 +670,7 @@ const buildEChartsLineAreaSeries = (
     yAxisIndex,
     showSymbol: true,
     showAllSymbol: true,
-    symbolSize: CHART_STYLE.symbolSize,
+    symbolSize,
     smooth: seriesSettings["line.interpolate"] === "cardinal",
     connectNulls: seriesSettings["line.missing"] === "interpolate",
     step:
@@ -695,19 +704,29 @@ const buildEChartsLineAreaSeries = (
     itemStyle: {
       color: renderingContext.getColor("background-primary"),
       borderColor: seriesModel.color,
-      borderWidth: lineWidth,
+      borderWidth: symbolBorderWidth,
       opacity: isSymbolVisible ? 1 : 0, // Make the symbol invisible to keep it for event trigger for tooltip
     },
   };
 };
 
+function getPositiveChartStyleNumber(
+  renderingContext: RenderingContext,
+  name: string,
+) {
+  const value = renderingContext.getChartStyleNumber?.(name);
+
+  return value != null && value > 0 ? value : undefined;
+}
+
 function getShowSymbol(
   chartDataDensity: ComboChartDataDensity,
   chartWidth: number,
   seriesSettings: SeriesSettings,
+  symbolSize = CHART_STYLE.symbolSize,
 ): boolean {
   const { totalNumberOfDots } = chartDataDensity;
-  const maxNumberOfDots = chartWidth / (2 * CHART_STYLE.symbolSize);
+  const maxNumberOfDots = chartWidth / (2 * symbolSize);
 
   if (chartWidth <= 0) {
     return false;

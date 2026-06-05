@@ -315,7 +315,17 @@ export function getPieChartModel(
     throw Error("missing `pie.rows` setting");
   }
 
-  const enabledPieRows = pieRows.filter((row) => row.enabled && !row.hidden);
+  const enabledPieRows = pieRows
+    .filter((row) => row.enabled && !row.hidden)
+    .map((row, index) => {
+      const shouldUseDashboardChartColor =
+        row.defaultColor || renderingContext.shouldForceChartColors?.();
+      const color = shouldUseDashboardChartColor
+        ? renderingContext.getChartColor?.(index)
+        : undefined;
+
+      return color ? { ...row, color } : row;
+    });
 
   const pieRowsWithValues = enabledPieRows.map((pieRow) => {
     const value = rowValuesByKey.get(pieRow.key);

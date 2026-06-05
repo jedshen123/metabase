@@ -3,7 +3,10 @@ import type {
   CartesianChartColumns,
 } from "metabase/visualizations/lib/graph/columns";
 import { SERIES_COLORS_SETTING_KEY } from "metabase/visualizations/shared/settings/series";
-import type { ComputedVisualizationSettings } from "metabase/visualizations/types";
+import type {
+  ComputedVisualizationSettings,
+  RenderingContext,
+} from "metabase/visualizations/types";
 import type { SingleSeries } from "metabase-types/api";
 import {
   createMockCard,
@@ -124,6 +127,83 @@ describe("series", () => {
           vizSettingsKey: metricColumns.metrics[0].column.name,
           visible: true,
         });
+      });
+
+      it("should use the dashboard chart color when there is no explicit series color", () => {
+        const rawSeries = [metricSeries];
+        const cardsColumns = [metricColumns];
+        const renderingContext = {
+          getChartColor: () => "#4b6bff",
+        } as unknown as RenderingContext;
+
+        const result = getCardsSeriesModels(
+          rawSeries,
+          cardsColumns,
+          [],
+          createMockComputedVisualizationSettings({
+            [SERIES_COLORS_SETTING_KEY]: {
+              [metricColumns.metrics[0].column.name]: "#509ee3",
+            },
+          }),
+          renderingContext,
+        );
+
+        expect(result[0].color).toBe("#4b6bff");
+      });
+
+      it("should keep explicitly configured series colors", () => {
+        const rawSeries = [metricSeries];
+        const cardsColumns = [metricColumns];
+        const renderingContext = {
+          getChartColor: () => "#4b6bff",
+        } as unknown as RenderingContext;
+
+        const result = getCardsSeriesModels(
+          rawSeries,
+          cardsColumns,
+          [],
+          createMockComputedVisualizationSettings({
+            series_settings: {
+              [metricColumns.metrics[0].column.name]: {
+                color: "#e8477a",
+              },
+            },
+            [SERIES_COLORS_SETTING_KEY]: {
+              [metricColumns.metrics[0].column.name]: "#e8477a",
+            },
+          }),
+          renderingContext,
+        );
+
+        expect(result[0].color).toBe("#E8477A");
+      });
+
+      it("should override explicit series colors when dashboard chart colors are forced", () => {
+        const rawSeries = [metricSeries];
+        const cardsColumns = [metricColumns];
+        const renderingContext = {
+          getChartColor: () => "#4b6bff",
+          shouldForceChartColors: () => true,
+        } as unknown as RenderingContext;
+
+        const result = getCardsSeriesModels(
+          rawSeries,
+          cardsColumns,
+          [],
+          createMockComputedVisualizationSettings({
+            series_settings: {
+              [metricColumns.metrics[0].column.name]: {
+                color: "#e8477a",
+              },
+            },
+            [SERIES_COLORS_SETTING_KEY]: {
+              [metricColumns.metrics[0].column.name]: "#e8477a",
+            },
+          }),
+          renderingContext,
+        );
+
+        expect(result[0].color).toBe("#4b6bff");
       });
 
       it("should return a series model with overridden name", () => {

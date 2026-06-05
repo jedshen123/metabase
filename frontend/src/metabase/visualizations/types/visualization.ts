@@ -49,6 +49,9 @@ export type ColorGetter = (colorName: string) => string;
 
 export interface RenderingContext {
   getColor: ColorGetter;
+  getChartColor?: (index: number) => string | undefined;
+  getChartStyleNumber?: (name: string) => number | undefined;
+  shouldForceChartColors?: () => boolean;
   measureText: TextWidthMeasurer;
   measureTextHeight: TextHeightMeasurer;
   fontFamily: string;

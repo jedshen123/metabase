@@ -86,6 +86,14 @@ describe("BaseItemsTable", () => {
     expect(screen.getByText(lastEditedAt)).toBeInTheDocument();
   });
 
+  it("displays dashboard items with the dashboard outline icon", () => {
+    setup();
+
+    expect(getIcon("dashboard_outline")).toHaveStyle({
+      color: "var(--mantine-color-success-text)",
+    });
+  });
+
   it("displays last edit time on hover", async () => {
     setup();
     const lastEditedAt = dayjs(timestamp).format("MMMM D, YYYY");

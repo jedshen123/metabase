@@ -98,6 +98,7 @@ export const getCartesianChartModel = (
     cardsColumns,
     hiddenSeries,
     settings,
+    renderingContext,
   );
   // Limiting the number of series models to 100 to avoid performance issues
   // with rendering large number of series in ECharts.

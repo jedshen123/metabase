@@ -142,21 +142,52 @@ export const getCardsSeriesModels = (
   cardsColumns: CartesianChartColumns[],
   hiddenSeries: string[],
   settings: ComputedVisualizationSettings,
+  renderingContext?: RenderingContext,
 ) => {
   const hasMultipleCards = rawSeries.length > 1;
+  let seriesIndexOffset = 0;
+
   return rawSeries.flatMap((cardDataset, index) => {
     const cardColumns = cardsColumns[index];
-
-    return getCardSeriesModels(
+    const seriesModels = getCardSeriesModels(
       cardDataset,
       cardColumns,
       hiddenSeries,
       hasMultipleCards,
       index === 0,
       settings,
+      renderingContext,
+      seriesIndexOffset,
     );
+
+    seriesIndexOffset += seriesModels.length;
+
+    return seriesModels;
   });
 };
+
+function getSeriesColor(
+  settings: ComputedVisualizationSettings,
+  vizSettingsKey: VizSettingsKey,
+  seriesIndex: number,
+  renderingContext?: RenderingContext,
+) {
+  const color = getHexColor(
+    settings?.[SERIES_COLORS_SETTING_KEY]?.[vizSettingsKey],
+  );
+  const chartColor = renderingContext?.getChartColor?.(seriesIndex);
+  const shouldForceChartColors =
+    chartColor != null && renderingContext?.shouldForceChartColors?.();
+  const hasExplicitColor =
+    settings?.[SERIES_SETTING_KEY]?.[vizSettingsKey]?.color != null ||
+    settings?.["graph.colors"]?.[seriesIndex] != null;
+
+  if (hasExplicitColor && !shouldForceChartColors) {
+    return color;
+  }
+
+  return chartColor ?? color;
+}
 
 /**
  * Generates series models for a given card with a dataset.
@@ -175,6 +206,8 @@ export const getCardSeriesModels = (
   hasMultipleCards: boolean,
   isFirstCard: boolean,
   settings: ComputedVisualizationSettings,
+  renderingContext?: RenderingContext,
+  seriesIndexOffset = 0,
 ): SeriesModel[] => {
   const cardId = card.id ?? null;
   const hasBreakout = "breakout" in columns;
@@ -185,7 +218,7 @@ export const getCardSeriesModels = (
   if (!hasBreakout) {
     return columns.metrics
       .filter((m) => !!m.column)
-      .map((metric) => {
+      .map((metric, seriesIndex) => {
         const vizSettingsKey = getSeriesVizSettingsKey(
           metric.column,
           hasMultipleCards,
@@ -210,8 +243,11 @@ export const getCardSeriesModels = (
             card.name,
           );
 
-        const color = getHexColor(
-          settings?.[SERIES_COLORS_SETTING_KEY]?.[vizSettingsKey],
+        const color = getSeriesColor(
+          settings,
+          vizSettingsKey,
+          seriesIndexOffset + seriesIndex,
+          renderingContext,
         );
 
         const dataKey = getDatasetKey(metric.column, cardId);
@@ -243,7 +279,7 @@ export const getCardSeriesModels = (
     breakout.index,
   );
 
-  return breakoutValues.map((breakoutValue) => {
+  return breakoutValues.map((breakoutValue, seriesIndex) => {
     // Unfortunately, breakout series include formatted breakout values in the key
     // which can be different based on a user's locale.
     const formattedBreakoutValue =
@@ -284,8 +320,11 @@ export const getCardSeriesModels = (
         card.name,
       );
 
-    const color = getHexColor(
-      settings?.[SERIES_COLORS_SETTING_KEY]?.[vizSettingsKey],
+    const color = getSeriesColor(
+      settings,
+      vizSettingsKey,
+      seriesIndexOffset + seriesIndex,
+      renderingContext,
     );
 
     const dataKey = getDatasetKey(metric.column, cardId, breakoutValue);

@@ -4,6 +4,11 @@ import { usePalette } from "metabase/common/hooks/use-palette";
 import { color } from "metabase/lib/colors";
 import { measureTextHeight, measureTextWidth } from "metabase/lib/measure-text";
 import { useMantineTheme } from "metabase/ui";
+import {
+  getDashboardChartColor,
+  getDashboardChartStyleNumber,
+  shouldForceDashboardChartColors,
+} from "metabase/visualizations/shared/utils/dashboard-chart-colors";
 import { getVisualizationTheme } from "metabase/visualizations/shared/utils/theme";
 import type { RenderingContext } from "metabase/visualizations/types";
 
@@ -29,6 +34,9 @@ export const useBrowserRenderingContext = (
 
     return {
       getColor: (name) => color(name, palette),
+      getChartColor: getDashboardChartColor,
+      getChartStyleNumber: getDashboardChartStyleNumber,
+      shouldForceChartColors: shouldForceDashboardChartColors,
       measureText: measureTextWidth,
       measureTextHeight,
       fontFamily: `${fontFamily}, Arial, sans-serif`,

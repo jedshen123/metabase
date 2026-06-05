@@ -142,3 +142,57 @@ describe("ensureRoomForLabels", () => {
     expect(axes.yAxis.map(getBoundaryGap)).toEqual([[0.026, 0]]);
   });
 });
+
+describe("buildEChartsSeries", () => {
+  const getLineSeriesOptions = (renderingContext: RenderingContext) => {
+    seriesFn.mockReturnValue({ display: "line" });
+
+    const chartModel = getCartesianChartModel(
+      [mockSeries],
+      mockSettings,
+      hiddenSeries,
+      renderingContext,
+    );
+
+    const chartMeasurements = getChartMeasurements(
+      chartModel,
+      mockSettings,
+      hasTimelineEvents,
+      chartWidth,
+      chartHeight,
+      renderingContext,
+    );
+
+    return buildEChartsSeries(
+      chartModel,
+      mockSettings,
+      chartWidth,
+      chartMeasurements,
+      renderingContext,
+    );
+  };
+
+  it("uses dashboard line style overrides from the rendering context", () => {
+    const dataSeriesOptions = getLineSeriesOptions({
+      ...mockRenderingContext,
+      getChartStyleNumber: (name) =>
+        ({
+          "line-symbol-size": 3,
+          "line-width": 1.6,
+          "line-symbol-border-width": 1.2,
+        })[name],
+    });
+
+    expect(
+      dataSeriesOptions.find((seriesOption) => seriesOption.type === "line"),
+    ).toMatchObject({
+      symbolSize: 3,
+      lineStyle: {
+        width: 1.6,
+      },
+      itemStyle: {
+        borderWidth: 1.2,
+      },
+    });
+  });
+});

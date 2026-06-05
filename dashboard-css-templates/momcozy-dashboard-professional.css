@@ -1,0 +1,273 @@
+:root {
+--dashboard-page-bg: #f4f6ff;
+  --mbdb-bg: #f4f7fb;
+  --mbdb-surface: #ffffff;
+  --mbdb-surface-soft: #f8fafc;
+  --mbdb-surface-tint: #eef6f7;
+  --mbdb-border: #d9e1ea;
+  --mbdb-primary: #010404;
+  --mbdb-primary-soft: #e8f2f4;
+  --mbdb-primary-dark: #1f5662;
+  --mbdb-text: #172033;
+  --mbdb-text-muted: #526274;
+  --mbdb-text-subtle: #8491a3;
+  --mbdb-grid: rgba(75, 107, 255, 0.08);
+  --mbdb-table-header-bg: #e9edff;
+  --mbdb-table-header-text: #164cff;
+  --mbdb-table-text: #273153;
+  --mbdb-table-border: #dfe6f4;
+  --mbdb-font: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+
+  --mb-dashboard-chart-colors: #6f87ff, #e96f9a, #6fcfe8, #ff9d5c, #8f62b2, #5f72d8;
+  --mb-dashboard-chart-colors-force: 1;
+
+  --mb-dashboard-line-width: 1.6;
+  --mb-dashboard-line-symbol-size: 3;
+  --mb-dashboard-line-symbol-border-width: 1.2;
+}
+
+* {
+  font-family: var(--mbdb-font) !important;
+  letter-spacing: 0 !important;
+}
+
+[data-testid="dashboard"],
+[data-element-id="dashboard-parameters-and-cards"],
+[data-element-id="dashboard-cards-container"] {
+  background: var(--mbdb-bg) !important;
+  color: var(--mbdb-text) !important;
+}
+
+/* 顶部与筛选器 */
+[data-testid="dashboard-header"] h1 {
+  color: var(--mbdb-text) !important;
+  font-size: 20px !important;
+  font-weight: 700 !important;
+}
+
+[data-testid="dashboard-parameter"],
+[data-testid="parameter-widget"],
+[data-element-id*="parameter"],
+[class*="Parameter"] button {
+  background: #fff !important;
+  border: 1px solid var(--mbdb-border) !important;
+  border-radius: 6px !important;
+  color: var(--mbdb-text) !important;
+  box-shadow: none !important;
+}
+
+/* 卡片 */
+[data-mb-dashboard-card] {
+  background: var(--mbdb-surface) !important;
+  border: 1px solid var(--mbdb-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+  overflow: hidden !important;
+}
+
+[data-mb-dashboard-card]:hover {
+  border-color: #b8c5d4 !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+}
+
+[data-mb-dashboard-card]::before {
+  content: "";
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, #2f6f7e, #5bc8e8, #4b6bff);
+}
+
+[data-mb-dashboard-card] h1,
+[data-mb-dashboard-card] h2,
+[data-mb-dashboard-card] h3,
+[data-mb-dashboard-card] h4,
+[data-mb-dashboard-card] [class*="Title"],
+[data-mb-dashboard-card] [class*="title"] {
+  color: var(--mbdb-text) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+/* KPI 大数字 */
+[data-mb-dashboard-card] [class*="Scalar"],
+[data-mb-dashboard-card] [class*="scalar"],
+[data-mb-dashboard-card] [class*="Value"],
+[data-mb-dashboard-card] [class*="value"] {
+  color: var(--mbdb-primary) !important;
+}
+
+[data-mb-dashboard-card] [class*="Scalar"] [class*="Value"],
+[data-mb-dashboard-card] [class*="scalar"] [class*="value"] {
+  font-size: clamp(48px, 5vw, 76px) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+}
+
+/* 图表区域：文字、网格、SVG 图形增强 */
+[data-mb-visualization],
+[data-mb-visualization] > div {
+  background: #fff !important;
+}
+
+[data-mb-visualization] canvas,
+[data-mb-visualization] svg {
+  filter: saturate(1.22) contrast(1.04);
+}
+
+[data-mb-visualization] svg text,
+[data-mb-visualization] svg tspan {
+  fill: var(--mbdb-text-muted) !important;
+  color: var(--mbdb-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+[data-mb-visualization] svg line,
+[data-mb-visualization] svg path[stroke="#EEE"],
+[data-mb-visualization] svg path[stroke="#eeeeee"],
+[data-mb-visualization] svg path[stroke="#E6E6E6"],
+[data-mb-visualization] svg path[stroke="#e6e6e6"] {
+  stroke: var(--mbdb-grid) !important;
+  stroke-opacity: 1 !important;
+}
+
+[data-mb-visualization] svg :is(path, rect, circle)[fill]:not([fill="none"]):not([fill="transparent"]):not([fill="#fff"]):not([fill="#ffffff"]) {
+  opacity: 0.98 !important;
+}
+
+[data-mb-visualization] svg :is(path, rect, circle)[stroke]:not([stroke="none"]):not([stroke="transparent"]) {
+  stroke-width: 2px !important;
+}
+
+/* 表格：Metabase DataGrid */
+[data-mb-visualization] [data-testid="table-root"] {
+  background: #fff !important;
+  color: var(--mbdb-table-text) !important;
+  font-size: 12px !important;
+  border: none !important;
+}
+
+[data-mb-visualization] [data-testid="table-header"] {
+  background: var(--mbdb-table-header-bg) !important;
+  border-bottom: 1px solid #cfd8ff !important;
+  min-height: 36px !important;
+}
+
+[data-mb-visualization] [data-testid="header-cell"],
+[data-mb-visualization] [role="columnheader"] {
+  background: var(--mbdb-table-header-bg) !important;
+  color: var(--mbdb-table-header-text) !important;
+  border-bottom: 1px solid #cfd8ff !important;
+  min-height: 36px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  vertical-align: middle !important;
+}
+
+[data-mb-visualization] [data-testid="header-cell"] [data-testid="cell-data"],
+[data-mb-visualization] [data-grid-header-cell-content],
+[data-mb-visualization] [role="columnheader"] * {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--mbdb-table-header-text) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 36px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  text-align: left !important;
+}
+
+[data-mb-visualization] [role="gridcell"] {
+  background: #fff !important;
+  color: var(--mbdb-table-text) !important;
+  border-bottom: 1px solid var(--mbdb-table-border) !important;
+  font-size: 12px !important;
+  min-height: 32px !important;
+  vertical-align: middle !important;
+}
+
+[data-mb-visualization] [role="gridcell"] [data-testid="cell-data"],
+[data-mb-visualization] [data-grid-cell-content] {
+  background: transparent !important;
+  color: var(--mbdb-table-text) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 32px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+[data-mb-visualization] [data-testid="table-body"] [role="row"]:nth-child(even) [role="gridcell"] {
+  background: #fff !important;
+}
+
+[data-mb-visualization] [role="row"]:hover [role="gridcell"] {
+  background: #f7f9ff !important;
+}
+
+/* 普通 table fallback */
+[data-mb-visualization] table,
+[data-mb-dashboard-card] table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  color: var(--mbdb-table-text) !important;
+  font-size: 12px !important;
+}
+
+[data-mb-visualization] th,
+[data-mb-dashboard-card] th {
+  background: var(--mbdb-table-header-bg) !important;
+  color: var(--mbdb-table-header-text) !important;
+  border-bottom: 1px solid #cfd8ff !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  height: 36px !important;
+  padding: 0 12px !important;
+  text-align: left !important;
+}
+
+[data-mb-visualization] td,
+[data-mb-dashboard-card] td {
+  color: var(--mbdb-table-text) !important;
+  border-bottom: 1px solid var(--mbdb-table-border) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+}
+
+/* 图例、Tooltip */
+[data-mb-visualization] [class*="Legend"],
+[data-mb-visualization] [class*="legend"] {
+  color: var(--mbdb-text-muted) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+
+[data-mb-visualization] [class*="Tooltip"],
+[data-mb-dashboard-card] [class*="Tooltip"] {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(47, 111, 126, 0.14) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08) !important;
+  color: var(--mbdb-text) !important;
+}
+
+[data-testid="dashboard"],
+[data-element-id="dashboard-parameters-and-cards"],
+[data-element-id="dashboard-cards-container"] {
+  background: var(--dashboard-page-bg) !important;
+}
+
+/* 如果筛选器所在横条也要统一底色 */
+[data-testid="dashboard-parameters-widget-container"] {
+  background: var(--dashboard-page-bg) !important;
+}
+
+/* 卡片保持白色，和底色拉开层次 */
+[data-mb-dashboard-card] {
+  background: #ffffff !important;
+}

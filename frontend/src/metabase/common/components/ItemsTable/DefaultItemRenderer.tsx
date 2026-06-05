@@ -45,6 +45,8 @@ export const DefaultItemRenderer = ({
   const icon = getIcon(item);
   if (item.archived) {
     icon.color = "text-tertiary";
+  } else if (item.model === "dashboard") {
+    icon.color = "success";
   } else if (item.model === "card") {
     icon.color = "accent5";
   }
