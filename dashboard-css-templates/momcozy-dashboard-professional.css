@@ -1,109 +1,322 @@
 :root {
---dashboard-page-bg: #f4f6ff;
-  --mbdb-bg: #f4f7fb;
-  --mbdb-surface: #ffffff;
-  --mbdb-surface-soft: #f8fafc;
-  --mbdb-surface-tint: #eef6f7;
-  --mbdb-border: #d9e1ea;
-  --mbdb-primary: #010404;
-  --mbdb-primary-soft: #e8f2f4;
-  --mbdb-primary-dark: #1f5662;
-  --mbdb-text: #172033;
-  --mbdb-text-muted: #526274;
-  --mbdb-text-subtle: #8491a3;
-  --mbdb-grid: rgba(75, 107, 255, 0.08);
-  --mbdb-table-header-bg: #e9edff;
-  --mbdb-table-header-text: #164cff;
-  --mbdb-table-text: #273153;
-  --mbdb-table-border: #dfe6f4;
-  --mbdb-font: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+  /* ================================================================
+   * ⚠️ 重要说明：不能在此设置 color-scheme，否则会覆盖 Mantine 注入到
+   * <html> 上的 color-scheme: dark，导致 light-dark() 函数失效。
+   * Metabase 系统暗色通过 data-mantine-color-scheme="dark" 切换，
+   * 暗色覆盖规则统一写在文件末尾的 [data-mantine-color-scheme="dark"] 块中。
+   * ================================================================ */
 
+  /* ================================================================
+   * 🌈 品牌主色 — 控制强调色、标题及 KPI 数字颜色
+   * 修改 --mbdb-primary 可以改变整体品牌感，例如改为 #1a56db（蓝色）
+   * ================================================================ */
+
+  /* KPI 大数字和强调元素颜色 */
+  --mbdb-primary: #010404;
+  /* 主色的浅色背景版，用于悬停态或色块背景 */
+  --mbdb-primary-soft: #e8f2f4;
+  /* 主色深色版，用于深色区域强调文字 */
+  --mbdb-primary-dark: #1f5662;
+
+  /* ================================================================
+   * 🎨 页面与卡片背景色
+   * --dashboard-page-bg：仪表盘画布底色
+   * --mbdb-surface：每张卡片的背景色
+   * 两者拉开色差可以产生明显的"浮卡片"层次感
+   * ================================================================ */
+
+  /* 仪表盘整体画布背景色（卡片之间的空白区域颜色） */
+  --dashboard-page-bg: #f4f6ff;
+  /* 内容区域背景（与画布背景保持一致或略深） */
+  --mbdb-bg: #f4f7fb;
+  /* 卡片背景色 */
+  --mbdb-surface: #ffffff;
+  /* 次级背景：图表区域、子区块等 */
+  --mbdb-surface-soft: #f8fafc;
+  /* 轻微着色背景，用于高亮区域 */
+  --mbdb-surface-tint: #eef6f7;
+
+  /* ================================================================
+   * 🖊️ 文字颜色层级
+   * 三级文字颜色：正文 > 辅助 > 弱化，视觉上形成自然层次
+   * ================================================================ */
+
+  /* 主要文字：标题、数据等重要内容 */
+  --mbdb-text: #172033;
+  /* 次级文字：图例、单位、辅助说明 */
+  --mbdb-text-muted: #526274;
+  /* 弱化文字：占位符、不重要备注 */
+  --mbdb-text-subtle: #8491a3;
+
+  /* ================================================================
+   * 🧱 边框与分隔线颜色
+   * ================================================================ */
+
+  /* 卡片、输入框、筛选器的默认边框颜色 */
+  --mbdb-border: #d9e1ea;
+  /* 卡片鼠标悬停时的边框颜色（略深，增强交互感） */
+  --mbdb-border-hover: #b8c5d4;
+
+  /* ================================================================
+   * 📊 表格颜色
+   * ================================================================ */
+
+  /* 表头背景色 */
+  --mbdb-table-header-bg: #e9edff;
+  /* 表头文字颜色（列名） */
+  --mbdb-table-header-text: #164cff;
+  /* 表头底部边框颜色 */
+  --mbdb-table-header-border: #cfd8ff;
+  /* 表格数据行文字颜色 */
+  --mbdb-table-text: #273153;
+  /* 表格数据行之间的分隔线颜色 */
+  --mbdb-table-border: #dfe6f4;
+  /* 数据行鼠标悬停高亮背景色 */
+  --mbdb-table-row-hover: #f7f9ff;
+
+  /* ================================================================
+   * 📈 图表配色
+   * 逗号分隔，最多可写 6 个颜色，依次分配给各数据系列
+   * 修改这里可以一次性改变所有图表（折线、柱形、饼图…）的颜色
+   * ================================================================ */
+
+  /* 图表系列颜色序列（第1、2、3… 系列依次使用）— 浅色模式（柔和粉彩） */
   --mb-dashboard-chart-colors: #6f87ff, #e96f9a, #6fcfe8, #ff9d5c, #8f62b2, #5f72d8;
+  /* 暗色模式图表色（写在 :root 供 JS 读取；色相/饱和度与浅色明显区分，深色底上更清晰） */
+  --mb-dashboard-chart-colors-dark: #3b82f6, #10b981, #f87171, #fb923c, #a855f7, #ec4899;
+  /* 设为 1：强制覆盖图表默认颜色；设为 0：保留图表自带配色 */
   --mb-dashboard-chart-colors-force: 1;
 
+  /* 图表背景网格线颜色（含透明度，越低越淡） */
+  --mbdb-grid: rgba(75, 107, 255, 0.08);
+  /* 图表轴标签、刻度文字颜色 */
+  --mbdb-chart-text: #526274;
+
+  /* ================================================================
+   * 📉 折线图线条样式
+   * ================================================================ */
+
+  /* 线条粗细（数值越大线越粗，推荐范围 1.0 – 3.0） */
   --mb-dashboard-line-width: 1.6;
+  /* 数据点（圆点）大小（推荐范围 2 – 8） */
   --mb-dashboard-line-symbol-size: 3;
+  /* 数据点边框粗细（推荐范围 1.0 – 2.5） */
   --mb-dashboard-line-symbol-border-width: 1.2;
+
+  /* ================================================================
+   * 🖋️ 字体
+   * 修改 --mbdb-font 可切换整套字体
+   * ================================================================ */
+
+  /* 全局字体族（优先系统字体，保证跨平台渲染清晰） */
+  --mbdb-font: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+
+  /* 仪表盘顶部大标题字号 */
+  --mbdb-font-size-title: 20px;
+  /* 卡片标题字号（对应 data-testid="legend-caption-title" 元素） */
+  --mbdb-font-size-card-title: 11px;
+  /* 覆盖 Mantine 组件内置字号变量，使卡片标题字号生效 */
+  --mantine-font-size-md: var(--mbdb-font-size-card-title);
+  /* 图表轴标签、刻度文字字号（⚠️ SVG 内部不支持 CSS 变量，此值仅供参考，
+   * 实际生效值在下方「图表 SVG 文字」规则块中直接写为 px，需同步修改） */
+  --mbdb-font-size-chart-label: 11px;
+  /* 表格文字字号（表头和数据行一致） */
+  --mbdb-font-size-table: 12px;
+  /* 图例文字字号 */
+  --mbdb-font-size-legend: 11px;
+  /* KPI 大数字字号：clamp(最小值, 弹性值, 最大值) */
+  --mbdb-font-size-kpi: clamp(48px, 5vw, 76px);
+
+  /* ================================================================
+   * 📐 圆角与尺寸
+   * ================================================================ */
+
+  /* 卡片圆角半径（越大越圆润，0 = 直角） */
+  --mbdb-radius-card: 8px;
+  /* 筛选器、小组件圆角半径 */
+  --mbdb-radius-widget: 6px;
+  /* 卡片顶部彩色装饰条的高度（设为 0 可隐藏） */
+  --mbdb-card-accent-height: 3px;
+  /* 表头行高 */
+  --mbdb-table-header-height: 36px;
+  /* 数据行行高 */
+  --mbdb-table-row-height: 32px;
+
+  /* ================================================================
+   * ✨ 卡片顶部装饰条渐变
+   * 修改三个颜色节点可以改变彩条的色彩过渡效果
+   * 设 --mbdb-card-accent-height: 0 可完全隐藏该装饰条
+   * ================================================================ */
+  --mbdb-card-accent-gradient: linear-gradient(90deg, #2f6f7e, #5bc8e8, #4b6bff);
+
+  /* ================================================================
+   * 🫧 阴影
+   * 修改透明度（最后一个数值）可控制阴影深浅
+   * 修改第二个数值（4px / 12px）可控制阴影扩散范围
+   * ================================================================ */
+
+  /* 卡片默认阴影（轻微，使卡片与背景分离） */
+  --mbdb-shadow-card: 0 1px 2px rgba(15, 23, 42, 0.05);
+  /* 卡片悬停阴影（更明显，给用户交互反馈） */
+  --mbdb-shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.06);
+  /* Tooltip 浮层阴影 */
+  --mbdb-shadow-tooltip: 0 2px 12px rgba(15, 23, 42, 0.08);
+  /* Tooltip 背景与边框 */
+  --mbdb-tooltip-bg: rgba(255, 255, 255, 0.98);
+  --mbdb-tooltip-border: rgba(47, 111, 126, 0.14);
 }
 
-* {
+/* ================================================================
+ * 全局字体应用
+ * 将上方定义的字体变量强制应用到页面所有元素
+ *
+ * ⚠️ SVG 内的 <text> 元素在部分浏览器中不继承 * 通配符的字体设置，
+ * 需在下方 SVG 专属规则中单独声明（见「图表 SVG 文字」段落）。
+ * ================================================================ */
+*,
+*::before,
+*::after {
   font-family: var(--mbdb-font) !important;
   letter-spacing: 0 !important;
 }
 
+/* ================================================================
+ * 仪表盘画布背景
+ * 覆盖 Metabase 默认的 --mb-color-background-* 白色底，统一为 --dashboard-page-bg
+ * 优先使用稳定 ID / data-testid（生产构建 CSS Modules 类名为纯哈希）
+ * 卡片本身仍保持 #fff（见下方 [data-mb-dashboard-card] 规则）
+ * ================================================================ */
 [data-testid="dashboard"],
-[data-element-id="dashboard-parameters-and-cards"],
-[data-element-id="dashboard-cards-container"] {
-  background: var(--mbdb-bg) !important;
+[data-testid="dashboard-header-container"],
+/* DashboardBody：scope 根（= dashboard）下 header 之后的 div，勿写 [data-testid="dashboard"] > …（与 scope 同元素会失效） */
+> header ~ div,
+[data-testid="dashboard-header-container"] + *,
+#Dashboard-Parameters-And-Cards-Container,
+#Dashboard-Parameters-And-Cards-Container > span,
+#Dashboard-Parameters-And-Cards-Container > [data-element-id="dashboard-cards-container"],
+[data-testid="dashboard-parameters-and-cards"],
+[data-testid="dashboard-parameters-and-cards"] > span,
+[data-testid="dashboard-parameters-widget-container"],
+[data-testid="edit-dashboard-parameters-widget-container"],
+[data-testid="dashboard-parameters-widget-container"] > *,
+[data-testid="fixed-width-filters"],
+[data-element-id="dashboard-cards-container"],
+[data-testid="dashboard-grid"],
+[data-testid="dashboard-grid"] .react-grid-layout,
+[data-element-id="dashboard-parameters-and-cards"] {
+  background: var(--dashboard-page-bg) !important;
+  background-color: var(--dashboard-page-bg) !important;
+}
+
+/* 防止 CardsContainer margin-top 折叠到 DashboardBody，露出白色底 */
+#Dashboard-Parameters-And-Cards-Container,
+[data-testid="dashboard-parameters-and-cards"] {
+  display: flow-root;
+}
+
+[data-testid="dashboard"] {
   color: var(--mbdb-text) !important;
 }
 
-/* 顶部与筛选器 */
+[data-testid="dashboard-header-container"],
+[data-testid="dashboard-parameters-widget-container"] {
+  border-bottom-color: var(--mbdb-border) !important;
+}
+
+/* ================================================================
+ * 仪表盘标题样式
+ * 修改 --mbdb-font-size-title 控制顶部大标题大小
+ * ================================================================ */
 [data-testid="dashboard-header"] h1 {
   color: var(--mbdb-text) !important;
-  font-size: 20px !important;
+  font-size: var(--mbdb-font-size-title) !important;
   font-weight: 700 !important;
 }
 
+/* ================================================================
+ * 筛选器 / 参数组件样式
+ * 控制日期选择器、下拉框等筛选器的外观
+ * ================================================================ */
 [data-testid="dashboard-parameter"],
 [data-testid="parameter-widget"],
 [data-element-id*="parameter"],
 [class*="Parameter"] button {
   background: #fff !important;
   border: 1px solid var(--mbdb-border) !important;
-  border-radius: 6px !important;
+  border-radius: var(--mbdb-radius-widget) !important;
   color: var(--mbdb-text) !important;
   box-shadow: none !important;
 }
 
-/* 卡片 */
+/* ================================================================
+ * 卡片容器样式
+ * 控制每张卡片的背景、边框、圆角、阴影
+ * ================================================================ */
 [data-mb-dashboard-card] {
-  background: var(--mbdb-surface) !important;
+  background: #ffffff !important;
   border: 1px solid var(--mbdb-border) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+  border-radius: var(--mbdb-radius-card) !important;
+  box-shadow: var(--mbdb-shadow-card) !important;
   overflow: hidden !important;
 }
 
+/* 卡片鼠标悬停效果（边框加深 + 阴影增强） */
 [data-mb-dashboard-card]:hover {
-  border-color: #b8c5d4 !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+  border-color: var(--mbdb-border-hover) !important;
+  box-shadow: var(--mbdb-shadow-card-hover) !important;
 }
 
+/* 卡片顶部彩色装饰条（用 ::before 伪元素实现，不占布局空间）
+ * 修改 --mbdb-card-accent-gradient 改变颜色
+ * 修改 --mbdb-card-accent-height 改变高度（0 = 隐藏） */
 [data-mb-dashboard-card]::before {
   content: "";
   display: block;
-  height: 3px;
-  background: linear-gradient(90deg, #2f6f7e, #5bc8e8, #4b6bff);
+  height: var(--mbdb-card-accent-height);
+  background: var(--mbdb-card-accent-gradient);
 }
 
+/* ================================================================
+ * 卡片标题样式
+ * 控制每张卡片左上角的标题文字大小和颜色
+ * 对应元素：data-testid="legend-caption-title"
+ * 修改 --mbdb-font-size-card-title 变量即可调整字号
+ * ================================================================ */
 [data-mb-dashboard-card] h1,
 [data-mb-dashboard-card] h2,
 [data-mb-dashboard-card] h3,
 [data-mb-dashboard-card] h4,
 [data-mb-dashboard-card] [class*="Title"],
-[data-mb-dashboard-card] [class*="title"] {
+[data-mb-dashboard-card] [class*="title"],
+[data-testid="legend-caption-title"] {
   color: var(--mbdb-text) !important;
-  font-size: 14px !important;
+  font-size: var(--mbdb-font-size-card-title) !important;
   font-weight: 700 !important;
 }
 
-/* KPI 大数字 */
-[data-mb-dashboard-card] [class*="Scalar"],
-[data-mb-dashboard-card] [class*="scalar"],
-[data-mb-dashboard-card] [class*="Value"],
-[data-mb-dashboard-card] [class*="value"] {
+/* ================================================================
+ * KPI 数字（标量卡片）样式
+ * 仅匹配标量组件，不用 [class*="Value"] 以免暗色下误染其他元素
+ * 暗色纯白覆盖见文件末尾；修改 --mbdb-primary 可改变浅色数字颜色
+ * ================================================================ */
+[data-mb-dashboard-card] [data-testid="scalar-value"],
+[data-mb-dashboard-card] [data-testid="scalar-root"] [class*="ScalarValue"] {
   color: var(--mbdb-primary) !important;
 }
 
 [data-mb-dashboard-card] [class*="Scalar"] [class*="Value"],
 [data-mb-dashboard-card] [class*="scalar"] [class*="value"] {
-  font-size: clamp(48px, 5vw, 76px) !important;
+  font-size: var(--mbdb-font-size-kpi) !important;
   font-weight: 800 !important;
   line-height: 1 !important;
 }
 
-/* 图表区域：文字、网格、SVG 图形增强 */
+/* ================================================================
+ * 图表区域容器
+ * 控制图表的背景色，以及通过 filter 微调色彩饱和度/对比度
+ * saturate(1.22)：增强色彩饱和度（1.0 = 原始，>1 更鲜艳）
+ * contrast(1.04)：轻微提升对比度（使颜色更清晰）
+ * ================================================================ */
 [data-mb-visualization],
 [data-mb-visualization] > div {
   background: #fff !important;
@@ -114,6 +327,26 @@
   filter: saturate(1.22) contrast(1.04);
 }
 
+/* ================================================================
+ * 图表 SVG 文字（轴标签、刻度值）
+ * 修改 --mbdb-font-size-chart-label 控制轴标签字号
+ *
+ * ⚠️ 注意：ECharts 会给 <text> 写内联 style="font-size:12px"，
+ * 普通 CSS 的 !important 在某些浏览器/Metabase 版本下无法覆盖内联样式。
+ * 此处同时设置 font-size 属性（SVG presentation attribute）和 style，
+ * 并通过提升选择器特异性来确保跨环境一致。
+ * ================================================================ */
+
+/* 强制字体族到 SVG text，避免跨环境字体族不同导致字符宽度差异
+ * ⚠️ SVG 内部不支持 var()，必须直接写字体名称 */
+[data-mb-visualization] svg,
+[data-mb-visualization] svg text,
+[data-mb-visualization] svg tspan {
+  font-family: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
+}
+
+/* 轴标签、刻度值颜色和字号
+ * ⚠️ SVG 内部 var() 不生效，此处用固定值（浅色模式）；暗色见下方 [data-mantine-color-scheme="dark"] 块 */
 [data-mb-visualization] svg text,
 [data-mb-visualization] svg tspan {
   fill: var(--mbdb-text-muted) !important;
@@ -122,6 +355,13 @@
   font-weight: 500 !important;
 }
 
+/* 更高特异性兜底：覆盖 ECharts 写入的内联 style="font-size:12px" */
+[data-mb-visualization] svg g text,
+[data-mb-visualization] svg g tspan {
+  font-size: 11px !important;
+}
+
+/* 图表背景网格线（覆盖默认的灰色线为主题网格色） */
 [data-mb-visualization] svg line,
 [data-mb-visualization] svg path[stroke="#EEE"],
 [data-mb-visualization] svg path[stroke="#eeeeee"],
@@ -131,39 +371,64 @@
   stroke-opacity: 1 !important;
 }
 
+/* ECharts 有时会给 SVG 背景矩形写死白色，改为跟随卡片背景 */
+[data-mb-visualization] svg rect[fill="#fff"],
+[data-mb-visualization] svg rect[fill="#ffffff"],
+[data-mb-visualization] svg rect[fill="white"] {
+  fill: #fff !important;
+}
+
+/* 图表填充元素微调不透明度（让颜色不过于"实"） */
 [data-mb-visualization] svg :is(path, rect, circle)[fill]:not([fill="none"]):not([fill="transparent"]):not([fill="#fff"]):not([fill="#ffffff"]) {
   opacity: 0.98 !important;
 }
 
+/* 图表描边元素统一线宽（让轮廓线更清晰） */
 [data-mb-visualization] svg :is(path, rect, circle)[stroke]:not([stroke="none"]):not([stroke="transparent"]) {
   stroke-width: 2px !important;
 }
 
-/* 表格：Metabase DataGrid */
+/* ================================================================
+ * 表格样式 — Metabase DataGrid（新版虚拟化表格）
+ * ================================================================ */
+
+/* 表格根容器 */
 [data-mb-visualization] [data-testid="table-root"] {
+  --mb-color-border-subtle: var(--mbdb-table-border) !important;
   background: #fff !important;
   color: var(--mbdb-table-text) !important;
-  font-size: 12px !important;
+  font-size: var(--mbdb-font-size-table) !important;
   border: none !important;
 }
 
-[data-mb-visualization] [data-testid="table-header"] {
-  background: var(--mbdb-table-header-bg) !important;
-  border-bottom: 1px solid #cfd8ff !important;
-  min-height: 36px !important;
+[data-mb-visualization] [role="grid"],
+[data-mb-visualization] [class*="TableInteractive"] {
+  --mb-color-border-subtle: var(--mbdb-table-border) !important;
 }
 
+/* 表头行容器 */
+[data-mb-visualization] [data-testid="table-header"] {
+  background: var(--mbdb-table-header-bg) !important;
+  border-bottom: 1px solid var(--mbdb-table-header-border) !important;
+  min-height: var(--mbdb-table-header-height) !important;
+}
+
+/* 表头单元格 */
 [data-mb-visualization] [data-testid="header-cell"],
 [data-mb-visualization] [role="columnheader"] {
   background: var(--mbdb-table-header-bg) !important;
   color: var(--mbdb-table-header-text) !important;
-  border-bottom: 1px solid #cfd8ff !important;
-  min-height: 36px !important;
+  border-bottom: 1px solid var(--mbdb-table-header-border) !important;
+  border-right: none !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  min-height: var(--mbdb-table-header-height) !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   vertical-align: middle !important;
 }
 
+/* 表头单元格内容 */
 [data-mb-visualization] [data-testid="header-cell"] [data-testid="cell-data"],
 [data-mb-visualization] [data-grid-header-cell-content],
 [data-mb-visualization] [role="columnheader"] * {
@@ -172,59 +437,72 @@
   border-radius: 0 !important;
   box-shadow: none !important;
   color: var(--mbdb-table-header-text) !important;
-  font-size: 12px !important;
+  font-size: var(--mbdb-font-size-table) !important;
   font-weight: 700 !important;
-  line-height: 36px !important;
+  line-height: var(--mbdb-table-header-height) !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   text-align: left !important;
 }
 
+/* 数据行单元格 */
 [data-mb-visualization] [role="gridcell"] {
+  --mb-color-border-subtle: var(--mbdb-table-border) !important;
   background: #fff !important;
   color: var(--mbdb-table-text) !important;
-  border-bottom: 1px solid var(--mbdb-table-border) !important;
-  font-size: 12px !important;
-  min-height: 32px !important;
+  font-size: var(--mbdb-font-size-table) !important;
+  min-height: var(--mbdb-table-row-height) !important;
   vertical-align: middle !important;
+  border-right: none !important;
+  border-top: 1px solid var(--mbdb-table-border) !important;
 }
 
+[data-mb-visualization] [data-mb-data-grid-body-cell] {
+  box-sizing: border-box !important;
+}
+
+/* 数据行单元格内容文字 */
 [data-mb-visualization] [role="gridcell"] [data-testid="cell-data"],
 [data-mb-visualization] [data-grid-cell-content] {
   background: transparent !important;
   color: var(--mbdb-table-text) !important;
-  font-size: 12px !important;
+  font-size: var(--mbdb-font-size-table) !important;
   font-weight: 500 !important;
-  line-height: 32px !important;
+  line-height: var(--mbdb-table-row-height) !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
 
+/* 奇偶行背景（当前均为白色，可将偶数行改为浅色实现斑马纹）
+ * 例如：background: #f5f8ff !important; */
 [data-mb-visualization] [data-testid="table-body"] [role="row"]:nth-child(even) [role="gridcell"] {
   background: #fff !important;
 }
 
+/* 行鼠标悬停高亮 */
 [data-mb-visualization] [role="row"]:hover [role="gridcell"] {
-  background: #f7f9ff !important;
+  background: var(--mbdb-table-row-hover) !important;
 }
 
-/* 普通 table fallback */
+/* ================================================================
+ * 表格样式 — 普通 HTML table（老版或简单表格的 fallback）
+ * ================================================================ */
 [data-mb-visualization] table,
 [data-mb-dashboard-card] table {
   width: 100% !important;
   border-collapse: collapse !important;
   color: var(--mbdb-table-text) !important;
-  font-size: 12px !important;
+  font-size: var(--mbdb-font-size-table) !important;
 }
 
 [data-mb-visualization] th,
 [data-mb-dashboard-card] th {
   background: var(--mbdb-table-header-bg) !important;
   color: var(--mbdb-table-header-text) !important;
-  border-bottom: 1px solid #cfd8ff !important;
-  font-size: 12px !important;
+  border-bottom: 1px solid var(--mbdb-table-header-border) !important;
+  font-size: var(--mbdb-font-size-table) !important;
   font-weight: 700 !important;
-  height: 36px !important;
+  height: var(--mbdb-table-header-height) !important;
   padding: 0 12px !important;
   text-align: left !important;
 }
@@ -233,41 +511,179 @@
 [data-mb-dashboard-card] td {
   color: var(--mbdb-table-text) !important;
   border-bottom: 1px solid var(--mbdb-table-border) !important;
-  font-size: 12px !important;
+  font-size: var(--mbdb-font-size-table) !important;
   font-weight: 500 !important;
-  height: 32px !important;
+  height: var(--mbdb-table-row-height) !important;
   padding: 0 12px !important;
 }
 
-/* 图例、Tooltip */
+/* ================================================================
+ * 图例样式
+ * 控制折线图、饼图等右侧/底部图例的文字颜色和大小
+ * ================================================================ */
 [data-mb-visualization] [class*="Legend"],
 [data-mb-visualization] [class*="legend"] {
   color: var(--mbdb-text-muted) !important;
-  font-size: 11px !important;
+  font-size: var(--mbdb-font-size-legend) !important;
   font-weight: 500 !important;
 }
 
+/* ================================================================
+ * Tooltip（数据悬浮提示框）样式
+ * 鼠标悬停在图表数据点上时浮出的提示框
+ * ================================================================ */
 [data-mb-visualization] [class*="Tooltip"],
 [data-mb-dashboard-card] [class*="Tooltip"] {
-  background: rgba(255, 255, 255, 0.98) !important;
-  border: 1px solid rgba(47, 111, 126, 0.14) !important;
-  border-radius: 8px !important;
-  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08) !important;
+  background: var(--mbdb-tooltip-bg) !important;
+  border: 1px solid var(--mbdb-tooltip-border) !important;
+  border-radius: var(--mbdb-radius-card) !important;
+  box-shadow: var(--mbdb-shadow-tooltip) !important;
   color: var(--mbdb-text) !important;
 }
 
-[data-testid="dashboard"],
-[data-element-id="dashboard-parameters-and-cards"],
-[data-element-id="dashboard-cards-container"] {
-  background: var(--dashboard-page-bg) !important;
+/* ================================================================
+ * 暗色模式适配
+ *
+ * ⚠️ 重要：Metabase 系统级暗色设置通过 MantineProvider forceColorScheme
+ * 在 <html> 上注入 data-mantine-color-scheme="dark"，而不是依赖系统的
+ * prefers-color-scheme 媒体查询。因此暗色覆盖必须用此属性选择器。
+ *
+ * 原先的 @media (prefers-color-scheme: dark) 只在操作系统切到暗色时生效，
+ * 当用户在 Metabase 设置中手动选择 Dark 而系统仍是浅色时，该媒体查询不触发。
+ * ================================================================ */
+[data-mantine-color-scheme="dark"] {
+  /* KPI 大数字：暗色下使用高对比纯白 */
+  --mbdb-primary: #ffffff;
+  --mbdb-primary-soft: #16313c;
+  --mbdb-primary-dark: #7ecde6;
+
+  --dashboard-page-bg: #0f1117;
+  --mbdb-bg: #0f1117;
+  --mbdb-surface: #1a1d27;
+  --mbdb-surface-soft: #202636;
+  --mbdb-surface-tint: #162d36;
+
+  --mbdb-text: #e2e8f0;
+  --mbdb-text-muted: #a8b5c7;
+  --mbdb-text-subtle: #79869a;
+
+  --mbdb-border: #2d3348;
+  --mbdb-border-hover: #3d4a66;
+
+  --mbdb-table-header-bg: #1e2540;
+  --mbdb-table-header-text: #89b4ff;
+  --mbdb-table-header-border: #2d3a6a;
+  --mbdb-table-text: #c8d4e8;
+  --mbdb-table-border: #252c42;
+  --mbdb-table-row-hover: #1e2438;
+
+  --mbdb-grid: rgba(100, 140, 255, 0.14);
+  --mbdb-chart-text: #94a3b8;
+
+  --mbdb-card-accent-gradient: linear-gradient(90deg, #7ecde6, #8ca1ff, #ff75a7);
+
+  --mbdb-shadow-card: 0 1px 4px rgba(0, 0, 0, 0.4);
+  --mbdb-shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --mbdb-shadow-tooltip: 0 2px 14px rgba(0, 0, 0, 0.55);
+  --mbdb-tooltip-bg: rgba(26, 29, 39, 0.98);
+  --mbdb-tooltip-border: rgba(100, 140, 255, 0.2);
 }
 
-/* 如果筛选器所在横条也要统一底色 */
-[data-testid="dashboard-parameters-widget-container"] {
+/* 暗色模式：布局区域（标题栏、筛选条、画布）统一深色底，消除白色横条 */
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-header-container"],
+[data-mantine-color-scheme="dark"] > header ~ div,
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-header-container"] + *,
+[data-mantine-color-scheme="dark"] #Dashboard-Parameters-And-Cards-Container,
+[data-mantine-color-scheme="dark"] #Dashboard-Parameters-And-Cards-Container > span,
+[data-mantine-color-scheme="dark"] #Dashboard-Parameters-And-Cards-Container > [data-element-id="dashboard-cards-container"],
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameters-and-cards"],
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameters-and-cards"] > span,
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameters-widget-container"],
+[data-mantine-color-scheme="dark"] [data-testid="edit-dashboard-parameters-widget-container"],
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameters-widget-container"] > *,
+[data-mantine-color-scheme="dark"] [data-testid="fixed-width-filters"],
+[data-mantine-color-scheme="dark"] [data-element-id="dashboard-cards-container"],
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-grid"],
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-grid"] .react-grid-layout,
+[data-mantine-color-scheme="dark"] [data-element-id="dashboard-parameters-and-cards"] {
   background: var(--dashboard-page-bg) !important;
+  background-color: var(--dashboard-page-bg) !important;
 }
 
-/* 卡片保持白色，和底色拉开层次 */
-[data-mb-dashboard-card] {
-  background: #ffffff !important;
+[data-mantine-color-scheme="dark"] #Dashboard-Parameters-And-Cards-Container,
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameters-and-cards"] {
+  display: flow-root;
+}
+
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-header-container"],
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameters-widget-container"] {
+  border-bottom-color: var(--mbdb-border) !important;
+}
+
+/* 暗色模式：覆盖浅色模式中写死的 #fff 背景 */
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] {
+  background: var(--mbdb-surface) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-visualization],
+[data-mantine-color-scheme="dark"] [data-mb-visualization] > div,
+[data-mantine-color-scheme="dark"] [data-mb-visualization] [data-testid="table-root"],
+[data-mantine-color-scheme="dark"] [data-mb-visualization] [role="gridcell"],
+[data-mantine-color-scheme="dark"] [data-mb-visualization] [data-testid="table-body"] [role="row"]:nth-child(even) [role="gridcell"] {
+  background: var(--mbdb-surface) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-visualization] [role="row"]:hover [role="gridcell"] {
+  background: var(--mbdb-table-row-hover) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameter"],
+[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"],
+[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] [class*="parameter"],
+[data-mantine-color-scheme="dark"] [class*="Parameter"] button {
+  background: var(--mbdb-surface) !important;
+  background-color: var(--mbdb-surface) !important;
+  border-color: var(--mbdb-border) !important;
+  color: var(--mbdb-text) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] [class*="Prefix"],
+[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] [class*="parameterIcon"] {
+  color: var(--mbdb-text-muted) !important;
+}
+
+/* 暗色：KPI 卡片局部覆盖主色变量，确保子元素 var(--mbdb-primary) 解析为白色 */
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-root"],
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-container"] {
+  --mbdb-primary: #ffffff;
+}
+
+/* 暗色：KPI 主数字强制纯白（覆盖 Metabase Emotion 内联 color） */
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] h1[data-testid="scalar-value"],
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-value"],
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-root"] [class*="ScalarValue"],
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [class*="ScalarValue"] {
+  color: #ffffff !important;
+}
+
+/* SmartScalar 环比数字保留涨跌色，不被 KPI 白色规则覆盖 */
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [class*="VariationValue"],
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [class*="VariationIcon"] {
+  color: inherit !important;
+}
+
+/* 暗色模式下 SVG 轴标签改为浅色（⚠️ SVG 内部不支持 var()，直接写固定值） */
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg text,
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg tspan,
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg g text,
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg g tspan {
+  fill: #94a3b8 !important;
+  color: #94a3b8 !important;
+}
+
+/* 暗色模式下 ECharts SVG 白色背景矩形改为卡片深色背景 */
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg rect[fill="#fff"],
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg rect[fill="#ffffff"],
+[data-mantine-color-scheme="dark"] [data-mb-visualization] svg rect[fill="white"] {
+  fill: #1a1d27 !important;
 }

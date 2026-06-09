@@ -1,5 +1,8 @@
+import type { ResolvedColorScheme } from "metabase/lib/color-scheme";
+
 const DASHBOARD_CSS_SCOPE_SELECTOR = "[data-mb-dashboard-css-scope]";
 const CHART_COLORS_VAR = "--mb-dashboard-chart-colors";
+const CHART_COLORS_DARK_VAR = "--mb-dashboard-chart-colors-dark";
 const CHART_COLORS_FORCE_VAR = "--mb-dashboard-chart-colors-force";
 const CHART_COLOR_VAR_PREFIX = "--mb-dashboard-chart-color-";
 const CHART_STYLE_NUMBER_VAR_PREFIX = "--mb-dashboard-";
@@ -38,7 +41,10 @@ function parseColorList(value: string) {
   return colors;
 }
 
-export function getDashboardChartColor(index: number) {
+export function getDashboardChartColor(
+  index: number,
+  colorScheme?: ResolvedColorScheme,
+) {
   if (typeof document === "undefined") {
     return undefined;
   }
@@ -49,7 +55,7 @@ export function getDashboardChartColor(index: number) {
 
   for (const dashboardRoot of dashboardRoots) {
     const style = getComputedStyle(dashboardRoot);
-    const colors = parseColorList(style.getPropertyValue(CHART_COLORS_VAR));
+    const colors = readDashboardChartColors(style, colorScheme);
 
     if (colors.length > 0) {
       return colors[index % colors.length];
@@ -86,6 +92,38 @@ export function shouldForceDashboardChartColors() {
   }
 
   return false;
+}
+
+function isDashboardDarkMode(colorScheme?: ResolvedColorScheme) {
+  if (colorScheme != null) {
+    return colorScheme === "dark";
+  }
+
+  if (typeof document === "undefined") {
+    return false;
+  }
+
+  return (
+    document.documentElement.getAttribute("data-mantine-color-scheme") ===
+    "dark"
+  );
+}
+
+function readDashboardChartColors(
+  style: CSSStyleDeclaration,
+  colorScheme?: ResolvedColorScheme,
+) {
+  if (isDashboardDarkMode(colorScheme)) {
+    const darkColors = parseColorList(
+      style.getPropertyValue(CHART_COLORS_DARK_VAR),
+    );
+
+    if (darkColors.length > 0) {
+      return darkColors;
+    }
+  }
+
+  return parseColorList(style.getPropertyValue(CHART_COLORS_VAR));
 }
 
 export function getDashboardChartStyleNumber(name: string) {

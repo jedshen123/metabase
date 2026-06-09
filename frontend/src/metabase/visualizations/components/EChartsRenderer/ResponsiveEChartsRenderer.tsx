@@ -2,6 +2,7 @@ import { forwardRef, useLayoutEffect } from "react";
 
 import { ExplicitSize } from "metabase/common/components/ExplicitSize";
 import { isNumber } from "metabase/lib/types";
+import { useColorScheme } from "metabase/ui";
 import type { EChartsRendererProps } from "metabase/visualizations/components/EChartsRenderer/EChartsRenderer";
 import { EChartsRenderer } from "metabase/visualizations/components/EChartsRenderer/EChartsRenderer";
 import { ResponsiveEChartsRendererStyled } from "metabase/visualizations/components/EChartsRenderer/ResponsiveEChartsRenderer.styled";
@@ -24,6 +25,8 @@ const ResponsiveEChartsRendererInner = forwardRef<
   }: ResponsiveEChartsRendererProps,
   ref,
 ) {
+  const { resolvedColorScheme } = useColorScheme();
+
   useLayoutEffect(() => {
     if (isNumber(width) && isNumber(height)) {
       onResize?.(width, height);
@@ -37,6 +40,7 @@ const ResponsiveEChartsRendererInner = forwardRef<
   return (
     <ResponsiveEChartsRendererStyled>
       <EChartsRenderer
+        key={resolvedColorScheme}
         ref={ref}
         {...echartsRenderedProps}
         width={width}

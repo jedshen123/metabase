@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { usePalette } from "metabase/common/hooks/use-palette";
 import { color } from "metabase/lib/colors";
 import { measureTextHeight, measureTextWidth } from "metabase/lib/measure-text";
-import { useMantineTheme } from "metabase/ui";
+import { useColorScheme, useMantineTheme } from "metabase/ui";
 import {
   getDashboardChartColor,
   getDashboardChartStyleNumber,
@@ -25,6 +25,7 @@ export const useBrowserRenderingContext = (
 
   const palette = usePalette();
   const theme = useMantineTheme();
+  const { resolvedColorScheme } = useColorScheme();
 
   return useMemo(() => {
     const style = getVisualizationTheme({
@@ -34,7 +35,8 @@ export const useBrowserRenderingContext = (
 
     return {
       getColor: (name) => color(name, palette),
-      getChartColor: getDashboardChartColor,
+      getChartColor: (index) =>
+        getDashboardChartColor(index, resolvedColorScheme),
       getChartStyleNumber: getDashboardChartStyleNumber,
       shouldForceChartColors: shouldForceDashboardChartColors,
       measureText: measureTextWidth,
@@ -42,5 +44,5 @@ export const useBrowserRenderingContext = (
       fontFamily: `${fontFamily}, Arial, sans-serif`,
       theme: style,
     };
-  }, [fontFamily, palette, theme, isDashboard]);
+  }, [fontFamily, palette, theme, resolvedColorScheme, isDashboard]);
 };
