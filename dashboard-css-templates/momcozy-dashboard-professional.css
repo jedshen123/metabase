@@ -104,6 +104,18 @@
   --mb-dashboard-line-symbol-border-width: 1.2;
 
   /* ================================================================
+   * 🍩 饼图 / 环形图中心文字（如「120」「总数」）
+   * 由 JS 从 scope 元素读取，默认 Metabase 为 22 / 17 / 14
+   * ================================================================ */
+
+  /* 中心数字字号（如 120）— 推荐范围 18 – 36，默认 28（Metabase 原生 22） */
+  --mb-dashboard-pie-total-value-font-size: 24;
+  /* 环较窄时的缩小数字字号 — 推荐范围 14 – 28 */
+  --mb-dashboard-pie-total-value-font-size-sm: 20;
+  /* 中心标签字号（如「总数」）— 推荐范围 12 – 20，默认 16（Metabase 原生 14） */
+  --mb-dashboard-pie-total-label-font-size: 16;
+
+  /* ================================================================
    * 🖋️ 字体
    * 修改 --mbdb-font 可切换整套字体
    * ================================================================ */
@@ -114,7 +126,7 @@
   /* 仪表盘顶部大标题字号 */
   --mbdb-font-size-title: 20px;
   /* 卡片标题字号（对应 data-testid="legend-caption-title" 元素） */
-  --mbdb-font-size-card-title: 11px;
+  --mbdb-font-size-card-title: 12px;
   /* 覆盖 Mantine 组件内置字号变量，使卡片标题字号生效 */
   --mantine-font-size-md: var(--mbdb-font-size-card-title);
   /* 图表轴标签、刻度文字字号（⚠️ SVG 内部不支持 CSS 变量，此值仅供参考，
@@ -235,12 +247,11 @@
 
 /* ================================================================
  * 筛选器 / 参数组件样式
- * 控制日期选择器、下拉框等筛选器的外观
+ * 只样式化内层触发按钮（ParameterValueWidgetTrigger），勿套在外层
+ * parameter-value-widget-target 上，否则会出现双边框、布局错位。
  * ================================================================ */
-[data-testid="dashboard-parameter"],
-[data-testid="parameter-widget"],
-[data-element-id*="parameter"],
-[class*="Parameter"] button {
+[data-testid="parameter-value-widget-target"] [role="listitem"] > *,
+[data-testid="editing-parameter-widget"] {
   background: #fff !important;
   border: 1px solid var(--mbdb-border) !important;
   border-radius: var(--mbdb-radius-widget) !important;
@@ -249,10 +260,10 @@
 }
 
 /* ================================================================
- * 卡片容器样式
- * 控制每张卡片的背景、边框、圆角、阴影
+ * 卡片容器样式（图表 / KPI / 表格等）
+ * Heading、Text 区块卡默认无背景（dashcard.background: false），勿套用白底+边框+顶条
  * ================================================================ */
-[data-mb-dashboard-card] {
+[data-mb-dashboard-card]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])) {
   background: #ffffff !important;
   border: 1px solid var(--mbdb-border) !important;
   border-radius: var(--mbdb-radius-card) !important;
@@ -260,52 +271,62 @@
   overflow: hidden !important;
 }
 
-/* 卡片鼠标悬停效果（边框加深 + 阴影增强） */
-[data-mb-dashboard-card]:hover {
+[data-mb-dashboard-card]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])):hover {
   border-color: var(--mbdb-border-hover) !important;
   box-shadow: var(--mbdb-shadow-card-hover) !important;
 }
 
-/* 卡片顶部彩色装饰条（用 ::before 伪元素实现，不占布局空间）
- * 修改 --mbdb-card-accent-gradient 改变颜色
- * 修改 --mbdb-card-accent-height 改变高度（0 = 隐藏） */
-[data-mb-dashboard-card]::before {
+[data-mb-dashboard-card]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"]))::before {
   content: "";
   display: block;
   height: var(--mbdb-card-accent-height);
   background: var(--mbdb-card-accent-gradient);
 }
 
+/* Heading / Text 区块卡：与画布同色、无边框（勿用 transparent，下层 data-mb-visualization 仍有白底） */
+[data-mb-dashboard-card]:has([data-testid="saved-dashboard-heading-content"]),
+[data-mb-dashboard-card]:has([data-viz-display="text"]) {
+  background: var(--dashboard-page-bg) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-mb-dashboard-card]:has([data-testid="saved-dashboard-heading-content"])::before,
+[data-mb-dashboard-card]:has([data-viz-display="text"])::before {
+  display: none !important;
+}
+
 /* ================================================================
- * 卡片标题样式
- * 控制每张卡片左上角的标题文字大小和颜色
- * 对应元素：data-testid="legend-caption-title"
+ * 卡片标题样式（图表左上角小标题）
+ * 对应 data-testid="legend-caption-title"
  * 修改 --mbdb-font-size-card-title 变量即可调整字号
  * ================================================================ */
-[data-mb-dashboard-card] h1,
-[data-mb-dashboard-card] h2,
-[data-mb-dashboard-card] h3,
-[data-mb-dashboard-card] h4,
-[data-mb-dashboard-card] [class*="Title"],
-[data-mb-dashboard-card] [class*="title"],
-[data-testid="legend-caption-title"] {
+[data-mb-dashboard-card] [data-testid="legend-caption-title"] {
   color: var(--mbdb-text) !important;
   font-size: var(--mbdb-font-size-card-title) !important;
   font-weight: 700 !important;
 }
 
 /* ================================================================
- * KPI 数字（标量卡片）样式
- * 仅匹配标量组件，不用 [class*="Value"] 以免暗色下误染其他元素
- * 暗色纯白覆盖见文件末尾；修改 --mbdb-primary 可改变浅色数字颜色
+ * 区块标题（Heading 卡片，如「总览 核心指标」）
+ * 原生约 1.375rem（22px），勿与 legend-caption-title 共用 12px
+ * 修改 --mbdb-font-size-title 控制字号
  * ================================================================ */
-[data-mb-dashboard-card] [data-testid="scalar-value"],
-[data-mb-dashboard-card] [data-testid="scalar-root"] [class*="ScalarValue"] {
-  color: var(--mbdb-primary) !important;
+[data-mb-dashboard-card] [data-testid="saved-dashboard-heading-content"] {
+  color: var(--mbdb-text) !important;
+  font-size: var(--mbdb-font-size-title) !important;
+  font-weight: 700 !important;
 }
 
-[data-mb-dashboard-card] [class*="Scalar"] [class*="Value"],
-[data-mb-dashboard-card] [class*="scalar"] [class*="value"] {
+/* ================================================================
+ * KPI 数字（标量卡片）样式
+ * 必须用 data-testid，勿用 [class*="ScalarValue"]：
+ * 生产构建 CSS Modules 类名为纯 hash（如 aB3xK），不含 Scalar/Value 子串，
+ * 导致本地 dev 有效、服务器部署无效。
+ * 暗色纯白覆盖见文件末尾；修改 --mbdb-primary 可改变浅色数字颜色
+ * ================================================================ */
+[data-mb-dashboard-card] [data-testid="scalar-value"] {
+  color: var(--mbdb-primary) !important;
   font-size: var(--mbdb-font-size-kpi) !important;
   font-weight: 800 !important;
   line-height: 1 !important;
@@ -314,12 +335,19 @@
 /* ================================================================
  * 图表区域容器
  * 控制图表的背景色，以及通过 filter 微调色彩饱和度/对比度
- * saturate(1.22)：增强色彩饱和度（1.0 = 原始，>1 更鲜艳）
- * contrast(1.04)：轻微提升对比度（使颜色更清晰）
+ * Heading/Text 区块卡须与 --dashboard-page-bg 一致，勿套用 #fff
  * ================================================================ */
-[data-mb-visualization],
-[data-mb-visualization] > div {
+[data-mb-visualization]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])),
+[data-mb-visualization]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])) > div {
   background: #fff !important;
+}
+
+[data-mb-visualization]:has([data-testid="saved-dashboard-heading-content"]),
+[data-mb-visualization]:has([data-testid="saved-dashboard-heading-content"]) > div,
+[data-mb-visualization]:has([data-viz-display="text"]),
+[data-mb-visualization]:has([data-viz-display="text"]) > div {
+  background: var(--dashboard-page-bg) !important;
+  background-color: var(--dashboard-page-bg) !important;
 }
 
 [data-mb-visualization] canvas,
@@ -345,20 +373,34 @@
   font-family: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
 }
 
-/* 轴标签、刻度值颜色和字号
- * ⚠️ SVG 内部 var() 不生效，此处用固定值（浅色模式）；暗色见下方 [data-mantine-color-scheme="dark"] 块 */
+/* 图表 SVG 文字颜色（饼图/柱图/折线图共用） */
 [data-mb-visualization] svg text,
 [data-mb-visualization] svg tspan {
   fill: var(--mbdb-text-muted) !important;
   color: var(--mbdb-text-muted) !important;
+}
+
+/* 轴标签、刻度字号 — 排除饼图（data-viz-display 稳定；勿用 #mb-pie-total-value 做 :has，
+ * ECharts graphic id 默认不在 SVG DOM 上，PieChart.tsx 会在渲染后写入） */
+[data-mb-visualization]:not(:has([data-viz-display="pie"])) svg text,
+[data-mb-visualization]:not(:has([data-viz-display="pie"])) svg tspan,
+[data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g text,
+[data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g tspan {
   font-size: 11px !important;
   font-weight: 500 !important;
 }
 
-/* 更高特异性兜底：覆盖 ECharts 写入的内联 style="font-size:12px" */
-[data-mb-visualization] svg g text,
-[data-mb-visualization] svg g tspan {
-  font-size: 11px !important;
+/* 饼图中心「120」「总数」— [data-mb-pie-total] 由 PieChart 渲染后写入 SVG DOM */
+[data-mb-visualization]:has([data-viz-display="pie"]) svg [data-mb-pie-total="value"] {
+  font-size: calc(var(--mb-dashboard-pie-total-value-font-size, 24) * 1px) !important;
+  font-weight: 700 !important;
+  fill: var(--mbdb-text, #172033) !important;
+}
+
+[data-mb-visualization]:has([data-viz-display="pie"]) svg [data-mb-pie-total="label"] {
+  font-size: calc(var(--mb-dashboard-pie-total-label-font-size, 16) * 1px) !important;
+  font-weight: 700 !important;
+  fill: var(--mbdb-text-muted, #64748b) !important;
 }
 
 /* 图表背景网格线（覆盖默认的灰色线为主题网格色） */
@@ -401,8 +443,8 @@
   border: none !important;
 }
 
-[data-mb-visualization] [role="grid"],
-[data-mb-visualization] [class*="TableInteractive"] {
+[data-mb-visualization] [data-testid="table-root"],
+[data-mb-visualization] [role="grid"] {
   --mb-color-border-subtle: var(--mbdb-table-border) !important;
 }
 
@@ -520,9 +562,10 @@
 /* ================================================================
  * 图例样式
  * 控制折线图、饼图等右侧/底部图例的文字颜色和大小
+ * 勿用 [class*="Legend"]：生产构建类名为纯 hash
  * ================================================================ */
-[data-mb-visualization] [class*="Legend"],
-[data-mb-visualization] [class*="legend"] {
+[data-mb-visualization] [data-testid="chart-legend"],
+[data-mb-visualization] [data-testid="chart-legend"] [data-testid="legend-item"] {
   color: var(--mbdb-text-muted) !important;
   font-size: var(--mbdb-font-size-legend) !important;
   font-weight: 500 !important;
@@ -531,9 +574,9 @@
 /* ================================================================
  * Tooltip（数据悬浮提示框）样式
  * 鼠标悬停在图表数据点上时浮出的提示框
+ * 勿用 [class*="Tooltip"]：生产构建类名为纯 hash
  * ================================================================ */
-[data-mb-visualization] [class*="Tooltip"],
-[data-mb-dashboard-card] [class*="Tooltip"] {
+[data-testid="echarts-tooltip"] {
   background: var(--mbdb-tooltip-bg) !important;
   border: 1px solid var(--mbdb-tooltip-border) !important;
   border-radius: var(--mbdb-radius-card) !important;
@@ -620,13 +663,26 @@
   border-bottom-color: var(--mbdb-border) !important;
 }
 
-/* 暗色模式：覆盖浅色模式中写死的 #fff 背景 */
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] {
+/* 暗色模式：覆盖浅色模式中写死的 #fff 背景（排除 Heading/Text 区块卡） */
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])) {
   background: var(--mbdb-surface) !important;
 }
 
-[data-mantine-color-scheme="dark"] [data-mb-visualization],
-[data-mantine-color-scheme="dark"] [data-mb-visualization] > div,
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card]:has([data-testid="saved-dashboard-heading-content"]),
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card]:has([data-viz-display="text"]) {
+  background: var(--dashboard-page-bg) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:has([data-testid="saved-dashboard-heading-content"]),
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:has([data-testid="saved-dashboard-heading-content"]) > div,
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:has([data-viz-display="text"]),
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:has([data-viz-display="text"]) > div {
+  background: var(--dashboard-page-bg) !important;
+  background-color: var(--dashboard-page-bg) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])),
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-testid="saved-dashboard-heading-content"])):not(:has([data-viz-display="text"])) > div,
 [data-mantine-color-scheme="dark"] [data-mb-visualization] [data-testid="table-root"],
 [data-mantine-color-scheme="dark"] [data-mb-visualization] [role="gridcell"],
 [data-mantine-color-scheme="dark"] [data-mb-visualization] [data-testid="table-body"] [role="row"]:nth-child(even) [role="gridcell"] {
@@ -637,18 +693,16 @@
   background: var(--mbdb-table-row-hover) !important;
 }
 
-[data-mantine-color-scheme="dark"] [data-testid="dashboard-parameter"],
-[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"],
-[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] [class*="parameter"],
-[data-mantine-color-scheme="dark"] [class*="Parameter"] button {
+[data-mantine-color-scheme="dark"] [data-testid="editing-parameter-widget"],
+[data-mantine-color-scheme="dark"] [data-testid="parameter-value-widget-target"] [role="listitem"] > * {
   background: var(--mbdb-surface) !important;
   background-color: var(--mbdb-surface) !important;
   border-color: var(--mbdb-border) !important;
   color: var(--mbdb-text) !important;
 }
 
-[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] [class*="Prefix"],
-[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] [class*="parameterIcon"] {
+[data-mantine-color-scheme="dark"] [data-testid="parameter-widget"] svg,
+[data-mantine-color-scheme="dark"] [data-testid="parameter-value-widget-target"] svg {
   color: var(--mbdb-text-muted) !important;
 }
 
@@ -659,24 +713,21 @@
 }
 
 /* 暗色：KPI 主数字强制纯白（覆盖 Metabase Emotion 内联 color） */
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] h1[data-testid="scalar-value"],
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-value"],
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-root"] [class*="ScalarValue"],
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [class*="ScalarValue"] {
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-value"] {
   color: #ffffff !important;
 }
 
 /* SmartScalar 环比数字保留涨跌色，不被 KPI 白色规则覆盖 */
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [class*="VariationValue"],
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [class*="VariationIcon"] {
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"],
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"] * {
   color: inherit !important;
 }
 
-/* 暗色模式下 SVG 轴标签改为浅色（⚠️ SVG 内部不支持 var()，直接写固定值） */
-[data-mantine-color-scheme="dark"] [data-mb-visualization] svg text,
-[data-mantine-color-scheme="dark"] [data-mb-visualization] svg tspan,
-[data-mantine-color-scheme="dark"] [data-mb-visualization] svg g text,
-[data-mantine-color-scheme="dark"] [data-mb-visualization] svg g tspan {
+/* 暗色模式：柱/折线轴标签浅色（饼图中心 #mb-pie-total-* 保留主题色） */
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg text,
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg tspan,
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g text,
+[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g tspan {
   fill: #94a3b8 !important;
   color: #94a3b8 !important;
 }

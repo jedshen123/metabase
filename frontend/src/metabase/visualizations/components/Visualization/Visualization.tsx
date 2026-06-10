@@ -842,6 +842,7 @@ class Visualization extends PureComponent<
           // `getUiName` should be defined (and is a required field on the TS type), but because we have javascript
           // files about visualizations, it's best if we don't risk crashing the app, hence the `?.()`
           data-viz-ui-name={visualization?.getUiName?.()}
+          data-viz-display={series?.[0]?.card?.display}
           ref={this.props.forwardedRef}
         >
           {!!hasHeader && (

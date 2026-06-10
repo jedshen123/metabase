@@ -18,6 +18,35 @@ import {
   calcInnerOuterRadiusesForRing,
 } from "./util/label";
 
+function getPositiveChartStyleNumber(
+  renderingContext: RenderingContext,
+  name: string,
+) {
+  const value = renderingContext.getChartStyleNumber?.(name);
+
+  return value != null && value > 0 ? value : undefined;
+}
+
+function getPieTotalFontSizes(renderingContext: RenderingContext) {
+  const valueFontSize =
+    getPositiveChartStyleNumber(
+      renderingContext,
+      "pie-total-value-font-size",
+    ) ?? DIMENSIONS.total.valueFontSize;
+  const valueFontSizeSm =
+    getPositiveChartStyleNumber(
+      renderingContext,
+      "pie-total-value-font-size-sm",
+    ) ?? DIMENSIONS.total.valueFontSizeSm;
+  const labelFontSize =
+    getPositiveChartStyleNumber(
+      renderingContext,
+      "pie-total-label-font-size",
+    ) ?? DIMENSIONS.total.labelFontSize;
+
+  return { valueFontSize, valueFontSizeSm, labelFontSize };
+}
+
 function getTotalGraphicOption(
   settings: ComputedVisualizationSettings,
   chartModel: PieChartModel,
@@ -28,12 +57,15 @@ function getTotalGraphicOption(
   outerRadius: number,
   innerRadius: number,
 ) {
+  const { valueFontSize, valueFontSizeSm, labelFontSize } =
+    getPieTotalFontSizes(renderingContext);
+
   // The font size is technically incorrect for the label text since it uses a
   // smaller font than the value, however using the value font size for
   // measurements makes up for the inaccuracy of our heuristic and provided a
   // good end result.
   const fontStyle = {
-    size: DIMENSIONS.total.valueFontSize,
+    size: valueFontSize,
     weight: DIMENSIONS.total.fontWeight,
     family: renderingContext.fontFamily,
   };
@@ -94,7 +126,7 @@ function getTotalGraphicOption(
   const labelTextWidth = renderingContext.measureText(labelText, fontStyle);
   const totalWidth = Math.max(valueTextWidth, labelTextWidth);
 
-  let valueFontSize = DIMENSIONS.total.valueFontSize;
+  let resolvedValueFontSize = valueFontSize;
 
   const hasSufficientWidth = innerRadius * 2 >= totalWidth;
   if (!hasSufficientWidth) {
@@ -106,7 +138,7 @@ function getTotalGraphicOption(
       valueText = "";
       labelText = "";
     }
-    valueFontSize = DIMENSIONS.total.valueFontSizeSm;
+    resolvedValueFontSize = valueFontSizeSm;
   }
 
   return {
@@ -117,10 +149,11 @@ function getTotalGraphicOption(
       {
         // Value
         type: "text",
+        id: "mb-pie-total-value",
         cursor: "text",
         top: labelText ? 0 : 8,
         style: {
-          fontSize: `${valueFontSize}px`,
+          fontSize: `${resolvedValueFontSize}px`,
           fontWeight: "700",
           textAlign: "center",
           fontFamily: renderingContext.fontFamily,
@@ -131,10 +164,11 @@ function getTotalGraphicOption(
       {
         // Label
         type: "text",
+        id: "mb-pie-total-label",
         cursor: "text",
-        top: 26,
+        top: Math.round(resolvedValueFontSize * 1.18),
         style: {
-          fontSize: `${DIMENSIONS.total.labelFontSize}px`,
+          fontSize: `${labelFontSize}px`,
           fontWeight: "700",
           textAlign: "center",
           fontFamily: renderingContext.fontFamily,

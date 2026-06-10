@@ -1,11 +1,19 @@
 import type { EChartsType } from "echarts/core";
-import { type MouseEvent, useCallback, useMemo, useRef, useState } from "react";
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useSet } from "react-use";
 
 import { isNotNull } from "metabase/lib/types";
 import { extractRemappings } from "metabase/visualizations";
 import { ChartWithLegend } from "metabase/visualizations/components/ChartWithLegend";
 import { ResponsiveEChartsRenderer } from "metabase/visualizations/components/EChartsRenderer";
+import { annotatePieCenterTextDomIds } from "metabase/visualizations/echarts/pie/annotate-pie-center-text-dom-ids";
 import { getPieChartFormatters } from "metabase/visualizations/echarts/pie/format";
 import { getPieChartModel } from "metabase/visualizations/echarts/pie/model";
 import { getPieChartOption } from "metabase/visualizations/echarts/pie/option";
@@ -102,9 +110,23 @@ export function PieChart(props: VisualizationProps) {
 
   const valuesColorsCss = usePieChartValuesColorsClasses(chartModel);
 
-  const handleInit = useCallback((chart: EChartsType) => {
-    chartRef.current = chart;
+  const applyPieCenterTextDomIds = useCallback((chart: EChartsType) => {
+    requestAnimationFrame(() => annotatePieCenterTextDomIds(chart));
   }, []);
+
+  const handleInit = useCallback(
+    (chart: EChartsType) => {
+      chartRef.current = chart;
+      applyPieCenterTextDomIds(chart);
+    },
+    [applyPieCenterTextDomIds],
+  );
+
+  useEffect(() => {
+    if (chartRef.current) {
+      applyPieCenterTextDomIds(chartRef.current);
+    }
+  }, [option, applyPieCenterTextDomIds]);
 
   const handleResize = useCallback(
     (width: number, height: number) => setSideLength(Math.min(width, height)),
