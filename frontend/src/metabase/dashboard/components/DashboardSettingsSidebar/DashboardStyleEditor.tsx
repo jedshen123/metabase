@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ColorPicker } from "metabase/common/components/ColorPicker";
 import { ChartColorsListField } from "metabase/dashboard/components/DashboardSettingsSidebar/ChartColorsListField";
@@ -33,6 +33,7 @@ import {
   Button,
   Group,
   NumberInput,
+  Radio,
   SegmentedControl,
   Select,
   Stack,
@@ -92,42 +93,6 @@ export function DashboardStyleEditor({ config, disabled, onChange }: Props) {
     onChange(applyDefaultTemplateConfig(config));
     setShowAdvanced(false);
   };
-
-  const categoryPanels = useMemo(
-    () =>
-      STYLE_TOKEN_CATEGORIES.map((category) => {
-        const tokens = getTokensForThemeAndCategory(previewTheme, category.id);
-
-        if (tokens.length === 0) {
-          return null;
-        }
-
-        return (
-          <Accordion.Item key={category.id} value={category.id}>
-            <Accordion.Control>{category.label}</Accordion.Control>
-            <Accordion.Panel>
-              <Stack gap="sm">
-                {tokens.map((token) => (
-                  <StyleTokenField
-                    key={`${previewTheme}-${token.name}`}
-                    token={token}
-                    theme={previewTheme}
-                    value={config.tokens[previewTheme][token.name] ?? ""}
-                    disabled={disabled || !config.enabled}
-                    onChange={(value) =>
-                      handleTokenChange(previewTheme, token.name, value)
-                    }
-                  />
-                ))}
-              </Stack>
-            </Accordion.Panel>
-          </Accordion.Item>
-        );
-      }).filter(Boolean),
-    // handleTokenChange is stable enough for panel structure; listing it would rebuild on every parent render
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- see above
-    [config.enabled, config.tokens, disabled, previewTheme],
-  );
 
   return (
     <Stack gap="md" data-testid="dashboard-style-editor">
@@ -198,7 +163,40 @@ export function DashboardStyleEditor({ config, disabled, onChange }: Props) {
             </Text>
 
             <Accordion variant="separated" defaultValue={null}>
-              {categoryPanels}
+              {STYLE_TOKEN_CATEGORIES.map((category) => {
+                const tokens = getTokensForThemeAndCategory(
+                  previewTheme,
+                  category.id,
+                );
+
+                if (tokens.length === 0) {
+                  return null;
+                }
+
+                return (
+                  <Accordion.Item key={category.id} value={category.id}>
+                    <Accordion.Control>{category.label}</Accordion.Control>
+                    <Accordion.Panel>
+                      <Stack gap="sm">
+                        {tokens.map((token) => (
+                          <StyleTokenField
+                            key={`${previewTheme}-${token.name}`}
+                            token={token}
+                            theme={previewTheme}
+                            value={
+                              config.tokens[previewTheme][token.name] ?? ""
+                            }
+                            disabled={disabled || !config.enabled}
+                            onChange={(value) =>
+                              handleTokenChange(previewTheme, token.name, value)
+                            }
+                          />
+                        ))}
+                      </Stack>
+                    </Accordion.Panel>
+                  </Accordion.Item>
+                );
+              })}
             </Accordion>
           </Box>
 
@@ -304,7 +302,7 @@ function StyleTokenField({
 
   if (token.type === "fontFamily") {
     return (
-      <PresetSelectField
+      <FontFamilyPresetField
         disabled={disabled}
         label={label}
         description={
@@ -313,7 +311,6 @@ function StyleTokenField({
           ]
         }
         value={value}
-        presets={FONT_FAMILY_PRESETS}
         onChange={onChange}
       />
     );
@@ -346,6 +343,94 @@ function StyleTokenField({
   );
 }
 
+function FontFamilyPresetField({
+  label,
+  description,
+  value,
+  disabled,
+  onChange,
+}: {
+  label: string;
+  description?: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
+  const matchedPreset = findMatchingPreset(value, FONT_FAMILY_PRESETS);
+  const [useCustom, setUseCustom] = useState(!matchedPreset);
+  const radioValue = useCustom
+    ? CUSTOM_PRESET_VALUE
+    : (matchedPreset?.id ?? CUSTOM_PRESET_VALUE);
+
+  useEffect(() => {
+    if (findMatchingPreset(value, FONT_FAMILY_PRESETS)) {
+      setUseCustom(false);
+    }
+  }, [value]);
+
+  return (
+    <Stack gap="xs" data-testid="font-family-preset-field">
+      <Text size="sm" fw={500}>
+        {label}
+      </Text>
+      {description ? (
+        <Text size="xs" c="text-secondary">
+          {description}
+        </Text>
+      ) : null}
+      <Radio.Group
+        value={radioValue}
+        onChange={(nextId) => {
+          if (nextId === CUSTOM_PRESET_VALUE) {
+            setUseCustom(true);
+            return;
+          }
+
+          const preset = FONT_FAMILY_PRESETS.find(
+            (option) => option.id === nextId,
+          );
+
+          setUseCustom(false);
+
+          if (preset) {
+            onChange(preset.value);
+          }
+        }}
+      >
+        <Stack gap="xs">
+          {FONT_FAMILY_PRESETS.map((preset) => (
+            <Radio
+              key={preset.id}
+              disabled={disabled}
+              label={preset.label}
+              value={preset.id}
+            />
+          ))}
+          <Radio
+            disabled={disabled}
+            label={STYLE_EDITOR_LABELS.customPreset}
+            value={CUSTOM_PRESET_VALUE}
+          />
+        </Stack>
+      </Radio.Group>
+
+      {useCustom ? (
+        <TextInput
+          disabled={disabled}
+          label={STYLE_EDITOR_LABELS.customValue}
+          value={value}
+          onChange={(event) => onChange(event.currentTarget.value)}
+          styles={{
+            input: {
+              fontFamily: "monospace",
+            },
+          }}
+        />
+      ) : null}
+    </Stack>
+  );
+}
+
 function PresetSelectField({
   label,
   description,
@@ -363,6 +448,11 @@ function PresetSelectField({
 }) {
   const matchedPreset = findMatchingPreset(value, presets);
   const [customMode, setCustomMode] = useState(!matchedPreset);
+  const derivedSelectValue =
+    customMode || !matchedPreset
+      ? CUSTOM_PRESET_VALUE
+      : (matchedPreset?.id ?? CUSTOM_PRESET_VALUE);
+  const [selectValue, setSelectValue] = useState(derivedSelectValue);
 
   useEffect(() => {
     if (findMatchingPreset(value, presets)) {
@@ -370,15 +460,16 @@ function PresetSelectField({
     }
   }, [value, presets]);
 
+  useEffect(() => {
+    setSelectValue(derivedSelectValue);
+  }, [derivedSelectValue]);
+
   const showCustomInput = customMode || !matchedPreset;
-  const selectValue = showCustomInput
-    ? CUSTOM_PRESET_VALUE
-    : (matchedPreset?.value ?? CUSTOM_PRESET_VALUE);
 
   const selectData = [
     ...presets.map((preset) => ({
       label: preset.label,
-      value: preset.value,
+      value: preset.id,
     })),
     { label: STYLE_EDITOR_LABELS.customPreset, value: CUSTOM_PRESET_VALUE },
   ];
@@ -391,15 +482,29 @@ function PresetSelectField({
         description={description}
         data={selectData}
         value={selectValue}
-        comboboxProps={{ middlewares: { flip: true, size: { padding: 6 } } }}
+        comboboxProps={{
+          withinPortal: false,
+          middlewares: { flip: true, size: { padding: 6 } },
+        }}
         onChange={(nextValue) => {
+          if (nextValue == null) {
+            return;
+          }
+
           if (nextValue === CUSTOM_PRESET_VALUE) {
+            setSelectValue(CUSTOM_PRESET_VALUE);
             setCustomMode(true);
             return;
           }
 
+          const preset = presets.find((option) => option.id === nextValue);
+
+          setSelectValue(nextValue);
           setCustomMode(false);
-          onChange(nextValue ?? value);
+
+          if (preset) {
+            onChange(preset.value);
+          }
         }}
       />
 

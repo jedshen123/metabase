@@ -5,7 +5,7 @@ export const STYLE_TOKEN_CATEGORIES: {
   id: StyleTokenCategoryId;
   label: string;
 }[] = [
-  { id: "brand", label: STYLE_CATEGORY_LABELS.brand },
+  { id: "kpi", label: STYLE_CATEGORY_LABELS.kpi },
   { id: "layout", label: STYLE_CATEGORY_LABELS.layout },
   { id: "typography", label: STYLE_CATEGORY_LABELS.typography },
   { id: "borders", label: STYLE_CATEGORY_LABELS.borders },
@@ -18,8 +18,74 @@ export const STYLE_TOKEN_CATEGORIES: {
 type TokenSpec = Omit<StyleTokenDefinition, "label">;
 
 const TOKEN_SPECS: TokenSpec[] = [
-  { name: "mbdb-primary", type: "color", theme: "light", category: "brand" },
-  { name: "mbdb-primary", type: "color", theme: "dark", category: "brand" },
+  { name: "mbdb-primary", type: "color", theme: "light", category: "kpi" },
+  {
+    name: "mbdb-font-size-kpi",
+    type: "kpiFontSize",
+    theme: "light",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-period-color",
+    type: "color",
+    theme: "light",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-period-font-size",
+    type: "fontSize",
+    theme: "light",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-comparison-color",
+    type: "color",
+    theme: "light",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-comparison-font-size",
+    type: "fontSize",
+    theme: "light",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-change-up-color",
+    type: "color",
+    theme: "light",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-change-down-color",
+    type: "color",
+    theme: "light",
+    category: "kpi",
+  },
+  { name: "mbdb-primary", type: "color", theme: "dark", category: "kpi" },
+  {
+    name: "mbdb-kpi-period-color",
+    type: "color",
+    theme: "dark",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-comparison-color",
+    type: "color",
+    theme: "dark",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-change-up-color",
+    type: "color",
+    theme: "dark",
+    category: "kpi",
+  },
+  {
+    name: "mbdb-kpi-change-down-color",
+    type: "color",
+    theme: "dark",
+    category: "kpi",
+  },
   {
     name: "dashboard-page-bg",
     type: "color",
@@ -273,12 +339,6 @@ const TOKEN_SPECS: TokenSpec[] = [
   {
     name: "mbdb-font-size-legend",
     type: "fontSize",
-    theme: "light",
-    category: "typographyScale",
-  },
-  {
-    name: "mbdb-font-size-kpi",
-    type: "kpiFontSize",
     theme: "light",
     category: "typographyScale",
   },

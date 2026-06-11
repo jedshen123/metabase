@@ -138,6 +138,15 @@
   --mbdb-font-size-legend: 11px;
   /* KPI 大数字字号：clamp(最小值, 弹性值, 最大值) */
   --mbdb-font-size-kpi: clamp(48px, 5vw, 76px);
+  /* KPI 趋势卡日期行（scalar-period，如「1月 2024」） */
+  --mbdb-kpi-period-color: #526274;
+  --mbdb-kpi-period-font-size: 14px;
+  /* KPI 趋势卡对比说明（如「对 上个月: 4」） */
+  --mbdb-kpi-comparison-color: #526274;
+  --mbdb-kpi-comparison-font-size: 14px;
+  /* KPI 趋势卡涨跌百分比 */
+  --mbdb-kpi-change-up-color: #16a34a;
+  --mbdb-kpi-change-down-color: #dc2626;
 
   /* ================================================================
    * 📐 圆角与尺寸
@@ -356,6 +365,33 @@
   font-size: var(--mbdb-font-size-kpi) !important;
   font-weight: 800 !important;
   line-height: 1 !important;
+}
+
+/* KPI 趋势卡：日期行 */
+[data-mb-dashboard-card] [data-testid="scalar-period"] {
+  color: var(--mbdb-kpi-period-color) !important;
+  font-size: var(--mbdb-kpi-period-font-size) !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+/* KPI 趋势卡：环比行（SmartScalar） */
+[data-mb-dashboard-card] [data-testid="scalar-previous-value"] {
+  font-size: var(--mbdb-kpi-comparison-font-size) !important;
+  line-height: 1.2 !important;
+}
+
+[data-mb-dashboard-card] [data-testid="scalar-previous-value"] h5 {
+  color: var(--mbdb-kpi-comparison-color) !important;
+  font-weight: 700 !important;
+}
+
+[data-mb-dashboard-card] [data-testid="scalar-previous-value"] div:has([aria-label="arrow_up icon"]) {
+  color: var(--mbdb-kpi-change-up-color) !important;
+}
+
+[data-mb-dashboard-card] [data-testid="scalar-previous-value"] div:has([aria-label="arrow_down icon"]) {
+  color: var(--mbdb-kpi-change-down-color) !important;
 }
 
 /* ================================================================
@@ -618,6 +654,10 @@
   --mbdb-primary: #ffffff;
   --mbdb-primary-soft: #16313c;
   --mbdb-primary-dark: #7ecde6;
+  --mbdb-kpi-period-color: #a8b5c7;
+  --mbdb-kpi-comparison-color: #a8b5c7;
+  --mbdb-kpi-change-up-color: #4ade80;
+  --mbdb-kpi-change-down-color: #f87171;
 
   --dashboard-page-bg: #0f1117;
   --mbdb-bg: #0f1117;
@@ -739,10 +779,21 @@
   color: #ffffff !important;
 }
 
-/* SmartScalar 环比数字保留涨跌色，不被 KPI 白色规则覆盖 */
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"],
-[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"] * {
-  color: inherit !important;
+/* 暗色：KPI 趋势卡日期与环比（使用暗色 token，不被主数字白色规则影响） */
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-period"] {
+  color: var(--mbdb-kpi-period-color) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"] h5 {
+  color: var(--mbdb-kpi-comparison-color) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"] div:has([aria-label="arrow_up icon"]) {
+  color: var(--mbdb-kpi-change-up-color) !important;
+}
+
+[data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"] div:has([aria-label="arrow_down icon"]) {
+  color: var(--mbdb-kpi-change-down-color) !important;
 }
 
 /* 暗色模式下 ECharts SVG 白色背景矩形改为卡片深色背景 */

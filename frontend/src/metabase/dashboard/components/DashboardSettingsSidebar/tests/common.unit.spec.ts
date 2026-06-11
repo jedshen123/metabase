@@ -38,6 +38,16 @@ describe("DashboardSettingsSidebar", () => {
     expect(screen.getByText("启用自定义看板样式")).toBeInTheDocument();
   });
 
+  it("should update font family preset from the style editor", async () => {
+    await setup();
+
+    await userEvent.click(screen.getByText("启用自定义看板样式"));
+    await userEvent.click(screen.getByText("字体与字号"));
+    await userEvent.click(screen.getByLabelText("Roboto"));
+
+    expect(screen.getByLabelText("Roboto")).toBeChecked();
+  });
+
   it("should show legacy css editor for existing raw css", async () => {
     await setup({
       dashboard: createMockDashboard({

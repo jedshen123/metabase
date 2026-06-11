@@ -5,8 +5,6 @@ export type StyleTokenType =
   | "fontFamily"
   | "fontSize"
   | "kpiFontSize"
-  | "cardAccentGradient"
-  | "boxShadow"
   | "number"
   | "text"
   | "chartColors";
@@ -14,7 +12,7 @@ export type StyleTokenType =
 export type StyleTokenTheme = "light" | "dark";
 
 export type StyleTokenCategoryId =
-  | "brand"
+  | "kpi"
   | "layout"
   | "typography"
   | "borders"

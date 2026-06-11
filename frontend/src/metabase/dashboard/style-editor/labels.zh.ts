@@ -34,7 +34,7 @@ export const STYLE_TOKEN_DESCRIPTIONS: Partial<
 > = {};
 
 export const STYLE_CATEGORY_LABELS = {
-  brand: "强调色",
+  kpi: "KPI",
   layout: "页面与卡片",
   typography: "文字颜色",
   borders: "边框",
@@ -45,7 +45,14 @@ export const STYLE_CATEGORY_LABELS = {
 } as const;
 
 export const STYLE_TOKEN_LABELS = {
-  "mbdb-primary": "KPI强调色",
+  "mbdb-primary": "强调色",
+  "mbdb-font-size-kpi": "数字字号",
+  "mbdb-kpi-period-color": "日期颜色",
+  "mbdb-kpi-period-font-size": "日期字号",
+  "mbdb-kpi-comparison-color": "对比说明颜色",
+  "mbdb-kpi-comparison-font-size": "对比说明字号",
+  "mbdb-kpi-change-up-color": "上涨颜色",
+  "mbdb-kpi-change-down-color": "下跌颜色",
   "dashboard-page-bg": "看板画布背景",
   "mbdb-bg": "内容区背景",
   "mbdb-surface": "卡片背景",
@@ -77,7 +84,6 @@ export const STYLE_TOKEN_LABELS = {
   "mbdb-font-size-chart-label": "图表轴标签字号",
   "mbdb-font-size-table": "表格字号",
   "mbdb-font-size-legend": "图例字号",
-  "mbdb-font-size-kpi": "KPI 数字字号",
   "mbdb-radius-card": "卡片圆角",
   "mbdb-radius-widget": "筛选器圆角",
   "mbdb-card-accent-height": "卡片顶条高度",
