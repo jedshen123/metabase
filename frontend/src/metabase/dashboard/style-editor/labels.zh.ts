@@ -1,0 +1,87 @@
+/** 看板样式编辑器 UI 文案（固定中文） */
+
+export const STYLE_EDITOR_LABELS = {
+  enable: "启用自定义看板样式",
+  enableDescription:
+    "通过可视化编辑器调整颜色与字体。关闭后已保存的配置会保留，但不会应用到看板。",
+  editTheme: "编辑主题",
+  light: "浅色",
+  dark: "暗色",
+  resetLight: "重置浅色主题",
+  resetDark: "重置暗色主题",
+  useDefaultTemplate: "使用默认模板",
+  useDefaultTemplateDescription:
+    "将浅色与暗色主题恢复为 Momcozy 专业版 CSS 模板的默认配置。",
+  showAdvancedCss: "显示高级 CSS",
+  additionalCss: "附加 CSS",
+  additionalCssDescription:
+    "追加在生成样式之后，可用于自定义选择器或覆盖规则。",
+  legacyCss: "旧版 CSS",
+  legacyCssDescription:
+    "在上方启用自定义样式以使用可视化编辑器，或在此编辑原始 CSS。",
+  saveStyles: "保存样式",
+  saveError: "无法保存看板样式。",
+  customStyling: "自定义样式",
+  customValue: "自定义值",
+  customPreset: "自定义…",
+  addSeriesColor: "添加系列颜色",
+  removeSeriesColor: "移除",
+  seriesColor: "系列",
+} as const;
+
+export const STYLE_TOKEN_DESCRIPTIONS: Partial<
+  Record<keyof typeof STYLE_TOKEN_LABELS, string>
+> = {};
+
+export const STYLE_CATEGORY_LABELS = {
+  brand: "强调色",
+  layout: "页面与卡片",
+  typography: "文字颜色",
+  borders: "边框",
+  table: "表格",
+  charts: "图表",
+  typographyScale: "字体与字号",
+  shape: "圆角与效果",
+} as const;
+
+export const STYLE_TOKEN_LABELS = {
+  "mbdb-primary": "KPI强调色",
+  "dashboard-page-bg": "看板画布背景",
+  "mbdb-bg": "内容区背景",
+  "mbdb-surface": "卡片背景",
+  "mbdb-surface-soft": "次级背景",
+  "mbdb-surface-tint": "着色背景",
+  "mbdb-text": "主要文字",
+  "mbdb-text-muted": "次要文字",
+  "mbdb-text-subtle": "弱化文字",
+  "mbdb-border": "默认边框",
+  "mbdb-border-hover": "悬停边框",
+  "mbdb-table-header-bg": "表头背景",
+  "mbdb-table-header-text": "表头文字",
+  "mbdb-table-header-border": "表头边框",
+  "mbdb-table-text": "单元格文字",
+  "mbdb-table-border": "行分隔线",
+  "mbdb-table-row-hover": "行悬停高亮",
+  "mb-dashboard-chart-colors": "系列颜色",
+  "mb-dashboard-chart-colors-dark": "系列颜色",
+  "mbdb-grid": "网格线",
+  "mbdb-chart-text": "坐标轴标签",
+  "mbdb-chart-data-label": "数据标签",
+  "mb-dashboard-line-width": "折线粗细",
+  "mb-dashboard-line-symbol-size": "数据点大小",
+  "mb-dashboard-pie-total-value-font-size": "饼图中心数字字号",
+  "mb-dashboard-pie-total-label-font-size": "饼图中心标签字号",
+  "mbdb-font": "字体族",
+  "mbdb-font-size-title": "看板顶部标题字号",
+  "mbdb-font-size-card-title": "卡片标题字号",
+  "mbdb-font-size-chart-label": "图表轴标签字号",
+  "mbdb-font-size-table": "表格字号",
+  "mbdb-font-size-legend": "图例字号",
+  "mbdb-font-size-kpi": "KPI 数字字号",
+  "mbdb-radius-card": "卡片圆角",
+  "mbdb-radius-widget": "筛选器圆角",
+  "mbdb-card-accent-height": "卡片顶条高度",
+  "mbdb-shadow-tooltip": "提示框阴影",
+  "mbdb-tooltip-bg": "提示框背景",
+  "mbdb-tooltip-border": "提示框边框",
+} as const;

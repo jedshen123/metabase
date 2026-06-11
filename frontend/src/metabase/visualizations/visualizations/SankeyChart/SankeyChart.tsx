@@ -22,6 +22,8 @@ export const SankeyChart = ({
   rawSeries,
   settings,
   fontFamily,
+  dashboard,
+  isDashboard,
   clicked,
   width,
   height,
@@ -35,7 +37,11 @@ export const SankeyChart = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<EChartsType>();
-  const renderingContext = useBrowserRenderingContext({ fontFamily });
+  const renderingContext = useBrowserRenderingContext({
+    fontFamily,
+    isDashboard,
+    dashboardId: dashboard?.id,
+  });
   const chartModel = useMemo(
     () => getSankeyChartModel(rawSeriesWithRemappings, settings),
     [rawSeriesWithRemappings, settings],
@@ -75,6 +81,7 @@ export const SankeyChart = ({
     <>
       <ResponsiveEChartsRenderer
         ref={containerRef}
+        dashboardId={dashboard?.id}
         option={option}
         eventHandlers={eventHandlers}
         onInit={handleInit}

@@ -1,17 +1,18 @@
+import {
+  getEffectiveDashboardCustomCss,
+  parseDashboardCaveatsPayload,
+  serializeDashboardCaveatsPayload,
+} from "metabase/dashboard/style-editor/style-config";
+import type { DashboardStyleEditorConfig } from "metabase/dashboard/style-editor/types";
 import type { Dashboard, DashboardId } from "metabase-types/api";
 
-const CUSTOM_CSS_CAVEATS_PREFIX = "metabase-dashboard-custom-css:";
-
-type DashboardCaveatsSettings = {
-  version: 1;
-  custom_css?: string;
-  caveats?: string | null;
-};
-
-type ParsedDashboardCaveats = {
-  customCss: string;
-  plainCaveats: string | null;
-};
+export {
+  createStyleEditorConfigOnEnable,
+  getDashboardStyleEditorConfig,
+  shouldApplyDashboardCustomCss,
+  setDashboardStyleEditorInCaveats,
+} from "metabase/dashboard/style-editor/style-config";
+export type { DashboardStyleEditorConfig } from "metabase/dashboard/style-editor/types";
 
 export function getDashboardCssScope(dashboardId: DashboardId) {
   const normalizedId = String(dashboardId).replace(/[^a-zA-Z0-9_-]/g, "-");
@@ -19,27 +20,34 @@ export function getDashboardCssScope(dashboardId: DashboardId) {
 }
 
 export function getDashboardCustomCss(dashboard: Pick<Dashboard, "caveats">) {
-  return parseDashboardCaveats(dashboard.caveats).customCss;
+  return getEffectiveDashboardCustomCss(dashboard);
+}
+
+export function getDashboardCustomCssRaw(
+  dashboard: Pick<Dashboard, "caveats">,
+) {
+  return parseDashboardCaveatsPayload(dashboard.caveats).customCss;
 }
 
 export function setDashboardCustomCssInCaveats(
   caveats: string | null | undefined,
   customCss: string,
+  styleEditor?: DashboardStyleEditorConfig | null,
 ) {
-  const { plainCaveats } = parseDashboardCaveats(caveats);
+  const { plainCaveats, styleEditor: existingStyleEditor } =
+    parseDashboardCaveatsPayload(caveats);
   const trimmedCss = customCss.trim();
+  const resolvedStyleEditor = styleEditor ?? existingStyleEditor;
 
-  if (!trimmedCss) {
+  if (!trimmedCss && !resolvedStyleEditor) {
     return plainCaveats ?? "";
   }
 
-  const settings: DashboardCaveatsSettings = {
-    version: 1,
-    custom_css: customCss,
-    caveats: plainCaveats,
-  };
-
-  return `${CUSTOM_CSS_CAVEATS_PREFIX}${JSON.stringify(settings)}`;
+  return serializeDashboardCaveatsPayload(
+    plainCaveats,
+    customCss,
+    resolvedStyleEditor,
+  );
 }
 
 export function getScopedDashboardCustomCss(
@@ -137,33 +145,6 @@ function scopeCustomCss(customCss: string, scopeSelector: string): string {
   }
 
   return result;
-}
-
-function parseDashboardCaveats(
-  caveats: string | null | undefined,
-): ParsedDashboardCaveats {
-  if (!caveats) {
-    return { customCss: "", plainCaveats: null };
-  }
-
-  if (!caveats.startsWith(CUSTOM_CSS_CAVEATS_PREFIX)) {
-    return { customCss: "", plainCaveats: caveats };
-  }
-
-  try {
-    const settings = JSON.parse(
-      caveats.slice(CUSTOM_CSS_CAVEATS_PREFIX.length),
-    ) as Partial<DashboardCaveatsSettings>;
-
-    return {
-      customCss:
-        typeof settings.custom_css === "string" ? settings.custom_css : "",
-      plainCaveats:
-        typeof settings.caveats === "string" ? settings.caveats : null,
-    };
-  } catch {
-    return { customCss: "", plainCaveats: null };
-  }
 }
 
 function scopeSelectorList(selectorList: string, scopeSelector: string) {

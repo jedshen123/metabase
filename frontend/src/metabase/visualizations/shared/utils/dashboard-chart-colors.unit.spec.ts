@@ -1,6 +1,7 @@
 import {
   getDashboardChartColor,
   getDashboardChartStyleNumber,
+  getDashboardChartTextColor,
 } from "./dashboard-chart-colors";
 
 describe("getDashboardChartColor", () => {
@@ -105,5 +106,24 @@ describe("getDashboardChartColor", () => {
     `;
 
     expect(getDashboardChartStyleNumber("line-symbol-size")).toBeUndefined();
+  });
+});
+
+describe("getDashboardChartTextColor", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+    document.documentElement.removeAttribute("data-mantine-color-scheme");
+  });
+
+  it("reads axis and data label colors separately", () => {
+    document.body.innerHTML = `
+      <div
+        data-mb-dashboard-css-scope="dashboard-1"
+        style="--mbdb-chart-text: #526274; --mbdb-chart-data-label: #172033"
+      ></div>
+    `;
+
+    expect(getDashboardChartTextColor("axis")).toBe("#526274");
+    expect(getDashboardChartTextColor("data-label")).toBe("#172033");
   });
 });

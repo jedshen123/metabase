@@ -1,8 +1,11 @@
 import { forwardRef, useLayoutEffect } from "react";
 
 import { ExplicitSize } from "metabase/common/components/ExplicitSize";
+import {
+  useDashboardDomReadyStyleRevision,
+  useDomReadyColorSchemeRevision,
+} from "metabase/dashboard/hooks/use-dashboard-style-revision";
 import { isNumber } from "metabase/lib/types";
-import { useColorScheme } from "metabase/ui";
 import type { EChartsRendererProps } from "metabase/visualizations/components/EChartsRenderer/EChartsRenderer";
 import { EChartsRenderer } from "metabase/visualizations/components/EChartsRenderer/EChartsRenderer";
 import { ResponsiveEChartsRendererStyled } from "metabase/visualizations/components/EChartsRenderer/ResponsiveEChartsRenderer.styled";
@@ -10,6 +13,7 @@ import { ResponsiveEChartsRendererStyled } from "metabase/visualizations/compone
 export interface ResponsiveEChartsRendererProps
   extends React.PropsWithChildren<EChartsRendererProps> {
   onResize?: (width: number, height: number) => void;
+  dashboardId?: number | string | null;
 }
 
 const ResponsiveEChartsRendererInner = forwardRef<
@@ -21,11 +25,13 @@ const ResponsiveEChartsRendererInner = forwardRef<
     width,
     height,
     children,
+    dashboardId,
     ...echartsRenderedProps
   }: ResponsiveEChartsRendererProps,
   ref,
 ) {
-  const { resolvedColorScheme } = useColorScheme();
+  const domReadyColorScheme = useDomReadyColorSchemeRevision();
+  const dashboardStyleRevision = useDashboardDomReadyStyleRevision(dashboardId);
 
   useLayoutEffect(() => {
     if (isNumber(width) && isNumber(height)) {
@@ -40,7 +46,7 @@ const ResponsiveEChartsRendererInner = forwardRef<
   return (
     <ResponsiveEChartsRendererStyled>
       <EChartsRenderer
-        key={resolvedColorScheme}
+        key={`${domReadyColorScheme}-${dashboardStyleRevision}`}
         ref={ref}
         {...echartsRenderedProps}
         width={width}

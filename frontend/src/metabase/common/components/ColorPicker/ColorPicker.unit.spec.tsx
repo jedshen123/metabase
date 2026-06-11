@@ -37,4 +37,19 @@ describe("ColorPicker", () => {
 
     expect(screen.getByLabelText(color.hex())).toBeInTheDocument();
   });
+
+  it("should close the popover when double-clicking the color controls", async () => {
+    render(<TestColorPicker />);
+    await userEvent.click(screen.getByLabelText("white"));
+
+    const tooltip = await screen.findByRole("tooltip");
+    // eslint-disable-next-line testing-library/no-node-access -- react-color saturation surface has no stable role
+    const saturation = tooltip.querySelector(".saturation-white");
+
+    expect(saturation).toBeTruthy();
+
+    await userEvent.dblClick(saturation as Element);
+
+    expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+  });
 });

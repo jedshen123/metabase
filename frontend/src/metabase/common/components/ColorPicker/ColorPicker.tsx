@@ -36,7 +36,13 @@ export const ColorPicker = forwardRef(function ColorPicker(
           onChange={onChange}
         />
       )}
-      popoverContent={<ColorPickerContent value={value} onChange={onChange} />}
+      popoverContent={({ closePopover }) => (
+        <ColorPickerContent
+          value={value}
+          onChange={onChange}
+          onClose={closePopover}
+        />
+      )}
     />
   );
 });

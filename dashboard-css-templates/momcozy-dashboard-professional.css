@@ -64,7 +64,7 @@
   /* 表头背景色 */
   --mbdb-table-header-bg: #e9edff;
   /* 表头文字颜色（列名） */
-  --mbdb-table-header-text: #164cff;
+  --mbdb-table-header-text: #3C5ED4;
   /* 表头底部边框颜色 */
   --mbdb-table-header-border: #cfd8ff;
   /* 表格数据行文字颜色 */
@@ -89,8 +89,10 @@
 
   /* 图表背景网格线颜色（含透明度，越低越淡） */
   --mbdb-grid: rgba(75, 107, 255, 0.08);
-  /* 图表轴标签、刻度文字颜色 */
+  /* 柱/折线轴刻度、轴标题颜色（编辑「图表 → 坐标轴标签」） */
   --mbdb-chart-text: #526274;
+  /* 柱顶/折线点数据标签颜色（编辑「图表 → 数据标签」，由 JS 读取） */
+  --mbdb-chart-data-label: #172033;
 
   /* ================================================================
    * 📉 折线图线条样式
@@ -109,11 +111,11 @@
    * ================================================================ */
 
   /* 中心数字字号（如 120）— 推荐范围 18 – 36，默认 28（Metabase 原生 22） */
-  --mb-dashboard-pie-total-value-font-size: 24;
+  --mb-dashboard-pie-total-value-font-size: 22;
   /* 环较窄时的缩小数字字号 — 推荐范围 14 – 28 */
   --mb-dashboard-pie-total-value-font-size-sm: 20;
   /* 中心标签字号（如「总数」）— 推荐范围 12 – 20，默认 16（Metabase 原生 14） */
-  --mb-dashboard-pie-total-label-font-size: 16;
+  --mb-dashboard-pie-total-label-font-size: 14;
 
   /* ================================================================
    * 🖋️ 字体
@@ -127,8 +129,6 @@
   --mbdb-font-size-title: 20px;
   /* 卡片标题字号（对应 data-testid="legend-caption-title" 元素） */
   --mbdb-font-size-card-title: 12px;
-  /* 覆盖 Mantine 组件内置字号变量，使卡片标题字号生效 */
-  --mantine-font-size-md: var(--mbdb-font-size-card-title);
   /* 图表轴标签、刻度文字字号（⚠️ SVG 内部不支持 CSS 变量，此值仅供参考，
    * 实际生效值在下方「图表 SVG 文字」规则块中直接写为 px，需同步修改） */
   --mbdb-font-size-chart-label: 11px;
@@ -144,9 +144,9 @@
    * ================================================================ */
 
   /* 卡片圆角半径（越大越圆润，0 = 直角） */
-  --mbdb-radius-card: 8px;
+  --mbdb-radius-card: 16px;
   /* 筛选器、小组件圆角半径 */
-  --mbdb-radius-widget: 6px;
+  --mbdb-radius-widget: 12px;
   /* 卡片顶部彩色装饰条的高度（设为 0 可隐藏） */
   --mbdb-card-accent-height: 3px;
   /* 表头行高 */
@@ -236,13 +236,39 @@
 }
 
 /* ================================================================
- * 仪表盘标题样式
- * 修改 --mbdb-font-size-title 控制顶部大标题大小
+ * 看板顶部标题（EditableText：外层 editable-text + 内层 dashboard-name-heading）
+ * 字号须设在外层，:after 占位才能随 --mbdb-font-size-title 撑开高度；
+ * 仅改 textarea 会导致大字被 overflow:hidden 裁切。
  * ================================================================ */
-[data-testid="dashboard-header"] h1 {
+[data-testid="dashboard-header"] [role="heading"] {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+
+[data-testid="dashboard-header"] [data-testid="editable-text"] {
   color: var(--mbdb-text) !important;
   font-size: var(--mbdb-font-size-title) !important;
   font-weight: 700 !important;
+  line-height: 1.2 !important;
+  max-width: 100% !important;
+  overflow: visible !important;
+}
+
+[data-testid="dashboard-header"] [data-testid="editable-text"]::after {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow: visible !important;
+}
+
+[data-testid="dashboard-header"] [data-testid="dashboard-name-heading"] {
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow: visible !important;
 }
 
 /* ================================================================
@@ -301,6 +327,7 @@
  * 对应 data-testid="legend-caption-title"
  * 修改 --mbdb-font-size-card-title 变量即可调整字号
  * ================================================================ */
+[data-mb-dashboard-card] [data-testid="legend-caption"] [data-testid="legend-caption-title"],
 [data-mb-dashboard-card] [data-testid="legend-caption-title"] {
   color: var(--mbdb-text) !important;
   font-size: var(--mbdb-font-size-card-title) !important;
@@ -309,8 +336,7 @@
 
 /* ================================================================
  * 区块标题（Heading 卡片，如「总览 核心指标」）
- * 原生约 1.375rem（22px），勿与 legend-caption-title 共用 12px
- * 修改 --mbdb-font-size-title 控制字号
+ * 与看板顶栏标题共用 --mbdb-font-size-title；勿与卡片小标题 12px 混用
  * ================================================================ */
 [data-mb-dashboard-card] [data-testid="saved-dashboard-heading-content"] {
   color: var(--mbdb-text) !important;
@@ -373,20 +399,13 @@
   font-family: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
 }
 
-/* 图表 SVG 文字颜色（饼图/柱图/折线图共用） */
-[data-mb-visualization] svg text,
-[data-mb-visualization] svg tspan {
-  fill: var(--mbdb-text-muted) !important;
-  color: var(--mbdb-text-muted) !important;
-}
-
-/* 轴标签、刻度字号 — 排除饼图（data-viz-display 稳定；勿用 #mb-pie-total-value 做 :has，
- * ECharts graphic id 默认不在 SVG DOM 上，PieChart.tsx 会在渲染后写入） */
+/* 柱/折线轴刻度字号（颜色由 JS 读取 --mbdb-chart-text / --mbdb-chart-data-label 分别设置）
+ * 排除饼图（data-viz-display 稳定；饼图中心文字见下方 data-mb-pie-total 规则） */
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg text,
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg tspan,
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g text,
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g tspan {
-  font-size: 11px !important;
+  font-size: var(--mbdb-font-size-chart-label) !important;
   font-weight: 500 !important;
 }
 
@@ -621,7 +640,10 @@
   --mbdb-table-row-hover: #1e2438;
 
   --mbdb-grid: rgba(100, 140, 255, 0.14);
+  /* 暗色柱/折线轴刻度（编辑暗色「图表 → 坐标轴标签」） */
   --mbdb-chart-text: #94a3b8;
+  /* 暗色数据标签（编辑暗色「图表 → 数据标签」） */
+  --mbdb-chart-data-label: #e2e8f0;
 
   --mbdb-card-accent-gradient: linear-gradient(90deg, #7ecde6, #8ca1ff, #ff75a7);
 
@@ -721,15 +743,6 @@
 [data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"],
 [data-mantine-color-scheme="dark"] [data-mb-dashboard-card] [data-testid="scalar-previous-value"] * {
   color: inherit !important;
-}
-
-/* 暗色模式：柱/折线轴标签浅色（饼图中心 #mb-pie-total-* 保留主题色） */
-[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg text,
-[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg tspan,
-[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g text,
-[data-mantine-color-scheme="dark"] [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g tspan {
-  fill: #94a3b8 !important;
-  color: #94a3b8 !important;
 }
 
 /* 暗色模式下 ECharts SVG 白色背景矩形改为卡片深色背景 */

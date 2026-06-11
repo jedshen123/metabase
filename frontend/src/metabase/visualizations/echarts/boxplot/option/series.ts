@@ -5,6 +5,7 @@ import type {
   ScatterSeriesOption,
 } from "echarts/charts";
 
+import { getCartesianChartTextColor } from "metabase/visualizations/echarts/cartesian/chart-text-color";
 import { X_AXIS_DATA_KEY } from "metabase/visualizations/echarts/cartesian/constants/dataset";
 import {
   CHART_STYLE,
@@ -229,7 +230,7 @@ export const buildEChartsPointsSeries = (
             fontFamily: renderingContext.fontFamily,
             fontWeight: BOXPLOT_DATA_LABEL_STYLE.fontWeight,
             fontSize: BOXPLOT_DATA_LABEL_STYLE.fontSize,
-            color: renderingContext.getColor("text-primary"),
+            color: getCartesianChartTextColor(renderingContext, "data-label"),
             textBorderColor: renderingContext.getColor("background-primary"),
             textBorderWidth: BOXPLOT_DATA_LABEL_STYLE.textBorderWidth,
             formatter: (params) => {
@@ -400,7 +401,7 @@ export const buildEChartsBoxPlotLabelsSeries = (
             fontFamily: renderingContext.fontFamily,
             fontWeight: BOXPLOT_DATA_LABEL_STYLE.fontWeight,
             fontSize: BOXPLOT_DATA_LABEL_STYLE.fontSize,
-            color: renderingContext.getColor("text-primary"),
+            color: getCartesianChartTextColor(renderingContext, "data-label"),
             textBorderColor: renderingContext.getColor("background-primary"),
             textBorderWidth: BOXPLOT_DATA_LABEL_STYLE.textBorderWidth,
             formatter: (params) => {

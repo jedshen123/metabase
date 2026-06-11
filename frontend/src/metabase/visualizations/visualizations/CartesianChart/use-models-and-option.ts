@@ -35,6 +35,8 @@ export function useModelsAndOption(
     onRender,
     hovered,
     isFullscreen,
+    isDashboard,
+    dashboard,
     gridSize,
   }: VisualizationProps,
   containerRef: React.RefObject<HTMLDivElement>,
@@ -44,6 +46,8 @@ export function useModelsAndOption(
   const renderingContext = useBrowserRenderingContext({
     fontFamily,
     isFullscreen,
+    isDashboard,
+    dashboardId: dashboard?.id,
   });
 
   const seriesToRender = useMemo(

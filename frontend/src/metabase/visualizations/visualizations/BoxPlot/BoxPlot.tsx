@@ -39,6 +39,7 @@ function BoxPlotInner({
   width,
   height,
   isDashboard,
+  dashboard,
   isEditing,
   isQueryBuilder,
   isFullscreen,
@@ -77,7 +78,11 @@ function BoxPlotInner({
     [originalSettings, isDashboard, width, height],
   );
 
-  const renderingContext = useBrowserRenderingContext({ fontFamily });
+  const renderingContext = useBrowserRenderingContext({
+    fontFamily,
+    isDashboard,
+    dashboardId: dashboard?.id,
+  });
 
   const showWarning = useCallback(
     (warning: string) => onRender?.({ warnings: [warning] }),
@@ -231,6 +236,7 @@ function BoxPlotInner({
         <ResponsiveEChartsRenderer
           key={hasValidOption ? "chart" : "measuring"}
           ref={containerRef}
+          dashboardId={dashboard?.id}
           option={option ?? {}}
           eventHandlers={hasValidOption ? eventHandlers : undefined}
           onInit={handleInit}

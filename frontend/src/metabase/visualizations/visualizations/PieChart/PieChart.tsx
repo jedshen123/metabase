@@ -42,6 +42,7 @@ export function PieChart(props: VisualizationProps) {
     isDashboard,
     isDocument,
     isFullscreen,
+    dashboard,
   } = props;
   const hoveredIndex = props.hovered?.index;
   const hoveredSliceKeyPath = props.hovered?.pieSliceKeyPath;
@@ -63,6 +64,7 @@ export function PieChart(props: VisualizationProps) {
     fontFamily,
     isDashboard,
     isFullscreen,
+    dashboardId: dashboard?.id,
   });
   const seriesToRender = useMemo(
     () => extractRemappings(rawSeries),
@@ -215,6 +217,7 @@ export function PieChart(props: VisualizationProps) {
     >
       <ResponsiveEChartsRenderer
         ref={containerRef}
+        dashboardId={dashboard?.id}
         option={option}
         onInit={handleInit}
         onResize={handleResize}

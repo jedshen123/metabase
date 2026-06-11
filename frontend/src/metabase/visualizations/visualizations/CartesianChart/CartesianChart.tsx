@@ -178,6 +178,7 @@ function CartesianChartInner(props: VisualizationProps) {
       >
         <ResponsiveEChartsRenderer
           ref={containerRef}
+          dashboardId={props.dashboard?.id}
           option={option}
           eventHandlers={eventHandlers}
           onResize={handleResize}

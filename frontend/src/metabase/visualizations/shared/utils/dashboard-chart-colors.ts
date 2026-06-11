@@ -6,6 +6,15 @@ const CHART_COLORS_DARK_VAR = "--mb-dashboard-chart-colors-dark";
 const CHART_COLORS_FORCE_VAR = "--mb-dashboard-chart-colors-force";
 const CHART_COLOR_VAR_PREFIX = "--mb-dashboard-chart-color-";
 const CHART_STYLE_NUMBER_VAR_PREFIX = "--mb-dashboard-";
+const CHART_AXIS_TEXT_VAR = "--mbdb-chart-text";
+const CHART_DATA_LABEL_VAR = "--mbdb-chart-data-label";
+
+export type DashboardChartTextColorKind = "axis" | "data-label";
+
+const CHART_TEXT_VAR_BY_KIND: Record<DashboardChartTextColorKind, string> = {
+  axis: CHART_AXIS_TEXT_VAR,
+  "data-label": CHART_DATA_LABEL_VAR,
+};
 
 function parseColorList(value: string) {
   const colors: string[] = [];
@@ -124,6 +133,28 @@ function readDashboardChartColors(
   }
 
   return parseColorList(style.getPropertyValue(CHART_COLORS_VAR));
+}
+
+export function getDashboardChartTextColor(kind: DashboardChartTextColorKind) {
+  if (typeof document === "undefined") {
+    return undefined;
+  }
+
+  const cssVar = CHART_TEXT_VAR_BY_KIND[kind];
+
+  for (const dashboardRoot of document.querySelectorAll<HTMLElement>(
+    DASHBOARD_CSS_SCOPE_SELECTOR,
+  )) {
+    const value = getComputedStyle(dashboardRoot)
+      .getPropertyValue(cssVar)
+      .trim();
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return undefined;
 }
 
 export function getDashboardChartStyleNumber(name: string) {

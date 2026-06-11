@@ -47,9 +47,12 @@ export type TableCellFormatter = (value: RowValue) => React.ReactNode;
 
 export type ColorGetter = (colorName: string) => string;
 
+export type ChartTextColorKind = "axis" | "data-label";
+
 export interface RenderingContext {
   getColor: ColorGetter;
   getChartColor?: (index: number) => string | undefined;
+  getChartTextColor?: (kind: ChartTextColorKind) => string | undefined;
   getChartStyleNumber?: (name: string) => number | undefined;
   shouldForceChartColors?: () => boolean;
   measureText: TextWidthMeasurer;

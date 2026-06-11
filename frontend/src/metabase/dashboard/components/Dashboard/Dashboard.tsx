@@ -7,12 +7,14 @@ import { DashboardArchivedEntityBanner } from "metabase/archive/components/Archi
 import DashboardS from "metabase/css/dashboard.module.css";
 import { DashboardHeader } from "metabase/dashboard/components/DashboardHeader";
 import { useDashboardContext } from "metabase/dashboard/context";
+import { useDashboardStyleRevision } from "metabase/dashboard/hooks/use-dashboard-style-revision";
 import { getIsHeaderVisible } from "metabase/dashboard/selectors";
 import {
   getDashboardCssScope,
   getDashboardCustomCss,
   getScopedDashboardCustomCss,
 } from "metabase/dashboard/utils/custom-css";
+import { getDashboardStyleCssKey } from "metabase/dashboard/utils/dashboard-style-css-key";
 import { isEmbeddingSdk } from "metabase/embedding-sdk/config";
 import { useSelector } from "metabase/lib/redux";
 import { FilterApplyToast } from "metabase/parameters/components/FilterApplyToast";
@@ -56,6 +58,7 @@ const DashboardDefaultView = ({ className }: { className?: string }) => {
 
   const tabHasCards = currentTabDashcards.length > 0;
   const dashboardHasCards = dashboard && dashboard.dashcards.length > 0;
+  const styleRevision = useDashboardStyleRevision(dashboard?.id);
 
   if (!dashboard) {
     return <Loader size="lg" label={t`Loading…`} />;
@@ -68,6 +71,10 @@ const DashboardDefaultView = ({ className }: { className?: string }) => {
   const scopedDashboardCustomCss = dashboardCustomCss
     ? getScopedDashboardCustomCss(dashboardCustomCss, dashboardCssScope)
     : "";
+  const dashboardStyleCssKey = getDashboardStyleCssKey(
+    dashboard.caveats,
+    styleRevision,
+  );
 
   // Embedding SDK has parent containers that requires dashboard to be full height to avoid double scrollbars.
   const isFullHeight = isEditing || isSharing || isEmbeddingSdk();
@@ -91,9 +98,11 @@ const DashboardDefaultView = ({ className }: { className?: string }) => {
       data-mb-dashboard-id={dashboard.id}
       data-mb-dashboard-css-scope={dashboardCssScope}
     >
-      {scopedDashboardCustomCss && (
-        <style nonce={window.MetabaseNonce}>{scopedDashboardCustomCss}</style>
-      )}
+      {scopedDashboardCustomCss ? (
+        <style key={dashboardStyleCssKey} nonce={window.MetabaseNonce}>
+          {scopedDashboardCustomCss}
+        </style>
+      ) : null}
 
       {dashboard.archived && <DashboardArchivedEntityBanner />}
 

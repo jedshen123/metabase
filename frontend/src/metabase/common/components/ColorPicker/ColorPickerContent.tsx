@@ -15,10 +15,11 @@ export type ColorPickerContentAttributes = Omit<
 export interface ColorPickerContentProps extends ColorPickerContentAttributes {
   value?: string;
   onChange?: (value?: string) => void;
+  onClose?: () => void;
 }
 
 export const ColorPickerContent = forwardRef(function ColorPickerContent(
-  { value, onChange, ...props }: ColorPickerContentProps,
+  { value, onChange, onClose, ...props }: ColorPickerContentProps,
   ref: Ref<HTMLDivElement>,
 ) {
   const handleChange = useCallback(
@@ -26,9 +27,15 @@ export const ColorPickerContent = forwardRef(function ColorPickerContent(
     [onChange],
   );
 
+  const handleControlsDoubleClick = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
   return (
     <ContentContainer {...props} ref={ref}>
-      <ColorPickerControls color={value} onChange={handleChange} />
+      <div onDoubleClick={handleControlsDoubleClick}>
+        <ColorPickerControls color={value} onChange={handleChange} />
+      </div>
       <ColorInput value={value} fullWidth onChange={onChange} />
     </ContentContainer>
   );

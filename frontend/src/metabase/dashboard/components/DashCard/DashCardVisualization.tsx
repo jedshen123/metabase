@@ -8,6 +8,10 @@ import { useLearnUrl } from "metabase/common/hooks";
 import CS from "metabase/css/core/index.css";
 import { useDashboardContext } from "metabase/dashboard/context";
 import { useClickBehaviorData } from "metabase/dashboard/hooks";
+import {
+  useDashboardDomReadyStyleRevision,
+  useDomReadyColorSchemeRevision,
+} from "metabase/dashboard/hooks/use-dashboard-style-revision";
 import { useResponsiveParameterList } from "metabase/dashboard/hooks/use-responsive-parameter-list";
 import {
   getDashCardInlineValuePopulatedParameters,
@@ -259,6 +263,10 @@ export function DashCardVisualization({
     onChangeLocation,
     enableEntityNavigation,
   } = useDashboardContext();
+  const domReadyColorScheme = useDomReadyColorSchemeRevision();
+  const dashboardStyleRevision = useDashboardDomReadyStyleRevision(
+    dashboard?.id,
+  );
 
   const datasets = useSelector((state) => getDashcardData(state, dashcard.id));
 
@@ -605,6 +613,7 @@ export function DashCardVisualization({
     >
       <EmbeddingEntityContextProvider uuid={uuid ?? null} token={token ?? null}>
         <Visualization
+          key={`${domReadyColorScheme}-${dashboardStyleRevision}`}
           className={cx(CS.flexFull, {
             [CS.overflowAuto]: visualizationOverlay,
             [CS.overflowHidden]: !visualizationOverlay,

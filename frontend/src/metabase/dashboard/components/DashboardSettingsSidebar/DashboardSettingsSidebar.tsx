@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMount } from "react-use";
 import { t } from "ttag";
 
@@ -9,10 +9,17 @@ import { useUniqueId } from "metabase/common/hooks/use-unique-id";
 import { setDashboardAttributes } from "metabase/dashboard/actions";
 import { toggleAutoApplyFilters } from "metabase/dashboard/actions/parameters";
 import { useDashboardContext } from "metabase/dashboard/context";
+import { dispatchDashboardStyleUpdated } from "metabase/dashboard/hooks/use-dashboard-style-revision";
+import { STYLE_EDITOR_LABELS } from "metabase/dashboard/style-editor/labels.zh";
+import { parseDashboardCaveatsPayload } from "metabase/dashboard/style-editor/style-config";
+import type { DashboardStyleEditorConfig } from "metabase/dashboard/style-editor/types";
 import { isDashboardCacheable } from "metabase/dashboard/utils";
 import {
-  getDashboardCustomCss,
+  createStyleEditorConfigOnEnable,
+  getDashboardCustomCssRaw,
+  getDashboardStyleEditorConfig,
   setDashboardCustomCssInCaveats,
+  setDashboardStyleEditorInCaveats,
 } from "metabase/dashboard/utils/custom-css";
 import { useDispatch } from "metabase/lib/redux";
 import { PLUGIN_CACHING } from "metabase/plugins";
@@ -25,6 +32,8 @@ import {
   useModalsStack,
 } from "metabase/ui";
 import type { CacheableDashboard, Dashboard } from "metabase-types/api";
+
+import { DashboardStyleEditor } from "./DashboardStyleEditor";
 
 export function DashboardSettingsSidebar() {
   const { dashboard, closeSidebar } = useDashboardContext();
@@ -84,12 +93,28 @@ const DashboardSidesheetBody = ({
 }: DashboardSidebarPageProps) => {
   const dispatch = useDispatch();
   const [updateDashboard, { error, isLoading }] = useUpdateDashboardMutation();
-  const [customCss, setCustomCss] = useState(() =>
-    getDashboardCustomCss(dashboard),
+
+  const savedPayload = useMemo(
+    () => parseDashboardCaveatsPayload(dashboard.caveats),
+    [dashboard.caveats],
   );
 
+  const [styleConfig, setStyleConfig] = useState<DashboardStyleEditorConfig>(
+    () => getDashboardStyleEditorConfig(dashboard),
+  );
+  const [legacyCustomCss, setLegacyCustomCss] = useState(() =>
+    getDashboardCustomCssRaw(dashboard),
+  );
+
+  const usesStyleEditor = Boolean(savedPayload.styleEditor);
+
   useEffect(() => {
-    setCustomCss(getDashboardCustomCss({ caveats: dashboard.caveats }));
+    setStyleConfig(
+      getDashboardStyleEditorConfig({ caveats: dashboard.caveats }),
+    );
+    setLegacyCustomCss(
+      getDashboardCustomCssRaw({ caveats: dashboard.caveats }),
+    );
   }, [dashboard.caveats, dashboard.id]);
 
   const handleToggleAutoApplyFilters = useCallback(
@@ -99,13 +124,27 @@ const DashboardSidesheetBody = ({
     [dispatch],
   );
 
-  const handleSaveCustomCss = useCallback(async () => {
-    const caveats = setDashboardCustomCssInCaveats(
-      dashboard.caveats,
-      customCss,
-    );
+  const handleStyleConfigChange = useCallback(
+    (nextConfig: DashboardStyleEditorConfig) => {
+      if (nextConfig.enabled && !styleConfig.enabled && !usesStyleEditor) {
+        setStyleConfig({
+          ...createStyleEditorConfigOnEnable(dashboard.caveats),
+          enabled: true,
+        });
+        return;
+      }
 
-    await updateDashboard({ id: dashboard.id, caveats }).unwrap();
+      setStyleConfig(nextConfig);
+    },
+    [dashboard.caveats, styleConfig.enabled, usesStyleEditor],
+  );
+
+  const handleSaveStyles = useCallback(async () => {
+    const caveats =
+      usesStyleEditor || styleConfig.enabled
+        ? setDashboardStyleEditorInCaveats(dashboard.caveats, styleConfig)
+        : setDashboardCustomCssInCaveats(dashboard.caveats, legacyCustomCss);
+
     dispatch(
       setDashboardAttributes({
         id: dashboard.id,
@@ -113,12 +152,28 @@ const DashboardSidesheetBody = ({
         isDirty: false,
       }),
     );
-  }, [customCss, dashboard.caveats, dashboard.id, dispatch, updateDashboard]);
+    dispatchDashboardStyleUpdated(dashboard.id);
+
+    await updateDashboard({ id: dashboard.id, caveats }).unwrap();
+  }, [
+    dashboard.caveats,
+    dashboard.id,
+    dispatch,
+    legacyCustomCss,
+    styleConfig,
+    updateDashboard,
+    usesStyleEditor,
+  ]);
 
   const autoApplyFilterToggleId = useUniqueId();
   const canWrite = dashboard.can_write && !dashboard.archived;
-  const savedCustomCss = getDashboardCustomCss(dashboard);
-  const hasCustomCssChanged = customCss !== savedCustomCss;
+  const savedStyleConfig = getDashboardStyleEditorConfig(dashboard);
+  const savedLegacyCss = getDashboardCustomCssRaw(dashboard);
+
+  const hasStyleChanges =
+    usesStyleEditor || styleConfig.enabled
+      ? JSON.stringify(styleConfig) !== JSON.stringify(savedStyleConfig)
+      : legacyCustomCss !== savedLegacyCss;
 
   const isCacheable = isDashboardCacheable(dashboard);
   const showCaching =
@@ -143,32 +198,44 @@ const DashboardSidesheetBody = ({
           onChange={(e) => handleToggleAutoApplyFilters(e.target.checked)}
         />
       </SidesheetCard>
-      <SidesheetCard title={t`Theme & CSS`}>
-        <Textarea
-          autosize
-          data-testid="dashboard-custom-css-editor"
+      <SidesheetCard title={STYLE_EDITOR_LABELS.customStyling}>
+        <DashboardStyleEditor
+          config={styleConfig}
           disabled={!canWrite}
-          label={t`CSS editor`}
-          minRows={10}
-          maxRows={18}
-          value={customCss}
-          onChange={(event) => setCustomCss(event.currentTarget.value)}
-          styles={{
-            input: {
-              fontFamily: "monospace",
-            },
-          }}
+          onChange={handleStyleConfigChange}
         />
-        {error ? (
-          <Text c="error" size="sm">{t`Couldn't save dashboard CSS.`}</Text>
+        {!usesStyleEditor && !styleConfig.enabled && legacyCustomCss.trim() ? (
+          <Textarea
+            autosize
+            data-testid="dashboard-custom-css-editor"
+            disabled={!canWrite}
+            label={STYLE_EDITOR_LABELS.legacyCss}
+            description={STYLE_EDITOR_LABELS.legacyCssDescription}
+            minRows={6}
+            maxRows={12}
+            mt="md"
+            value={legacyCustomCss}
+            onChange={(event) => setLegacyCustomCss(event.currentTarget.value)}
+            styles={{
+              input: {
+                fontFamily: "monospace",
+              },
+            }}
+          />
         ) : null}
-        <Group justify="flex-end">
+        {error ? (
+          <Text c="error" size="sm">
+            {STYLE_EDITOR_LABELS.saveError}
+          </Text>
+        ) : null}
+        <Group justify="flex-end" mt="md">
           <Button
-            disabled={!canWrite || !hasCustomCssChanged}
+            disabled={!canWrite || !hasStyleChanges}
             loading={isLoading}
-            onClick={handleSaveCustomCss}
+            data-testid="dashboard-style-save-button"
+            onClick={handleSaveStyles}
           >
-            {t`Save CSS`}
+            {STYLE_EDITOR_LABELS.saveStyles}
           </Button>
         </Group>
       </SidesheetCard>

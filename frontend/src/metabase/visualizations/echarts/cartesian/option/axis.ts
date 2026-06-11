@@ -2,6 +2,7 @@ import type { XAXisOption, YAXisOption } from "echarts/types/dist/shared";
 import type { AxisBaseOptionCommon } from "echarts/types/src/coord/axisCommonTypes";
 
 import { parseNumberValue } from "metabase/lib/number";
+import { getCartesianChartTextColor } from "metabase/visualizations/echarts/cartesian/chart-text-color";
 import { CHART_STYLE } from "metabase/visualizations/echarts/cartesian/constants/style";
 import type {
   AxisFormatter,
@@ -68,7 +69,7 @@ export const getYAxisRange = (
 };
 
 export const getAxisNameDefaultOption = (
-  { getColor, fontFamily, theme }: RenderingContext,
+  renderingContext: RenderingContext,
   nameGap: number,
   name: string | undefined,
   rotate?: number,
@@ -78,24 +79,22 @@ export const getAxisNameDefaultOption = (
   nameLocation: "middle",
   nameRotate: rotate,
   nameTextStyle: {
-    color: getColor("text-primary"),
-    fontSize: theme.cartesian.label.fontSize,
+    color: getCartesianChartTextColor(renderingContext, "axis"),
+    fontSize: renderingContext.theme.cartesian.label.fontSize,
     fontWeight: CHART_STYLE.axisName.weight,
-    fontFamily,
+    fontFamily: renderingContext.fontFamily,
   },
 });
 
-export const getTicksDefaultOption = ({
-  theme,
-  getColor,
-  fontFamily,
-}: RenderingContext) => {
+export const getTicksDefaultOption = (renderingContext: RenderingContext) => {
+  const { theme } = renderingContext;
+
   return {
     hideOverlap: true,
-    color: getColor("text-primary"),
+    color: getCartesianChartTextColor(renderingContext, "axis"),
     fontSize: theme.cartesian.label.fontSize,
     fontWeight: CHART_STYLE.axisTicks.weight,
-    fontFamily,
+    fontFamily: renderingContext.fontFamily,
   };
 };
 

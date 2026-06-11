@@ -10,6 +10,7 @@ import _ from "underscore";
 import { getTextColorForBackground } from "metabase/lib/colors/palette";
 import { getObjectValues } from "metabase/lib/objects";
 import { isNotNull } from "metabase/lib/types";
+import { getCartesianChartTextColor } from "metabase/visualizations/echarts/cartesian/chart-text-color";
 import {
   INDEX_KEY,
   NEGATIVE_STACK_TOTAL_DATA_KEY,
@@ -300,7 +301,7 @@ export const buildEChartsLabelOptions = (
     fontFamily: renderingContext.fontFamily,
     fontWeight: CHART_STYLE.seriesLabels.weight,
     fontSize,
-    color: renderingContext.getColor("text-primary"),
+    color: getCartesianChartTextColor(renderingContext, "data-label"),
     textBorderColor: renderingContext.getColor("background-primary"),
     textBorderWidth: 3,
     formatter:
@@ -440,7 +441,7 @@ function getDataLabelSeriesOption(
       fontFamily: renderingContext.fontFamily,
       fontWeight: CHART_STYLE.seriesLabels.weight,
       fontSize: CHART_STYLE.seriesLabels.size,
-      color: renderingContext.getColor("text-primary"),
+      color: getCartesianChartTextColor(renderingContext, "data-label"),
       textBorderColor: renderingContext.getColor("background-primary"),
       textBorderWidth: 3,
     },

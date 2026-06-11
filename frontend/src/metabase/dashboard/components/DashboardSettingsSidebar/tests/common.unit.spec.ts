@@ -31,7 +31,14 @@ describe("DashboardSettingsSidebar", () => {
     expect(screen.getByText("Auto-apply filters")).toBeInTheDocument();
   });
 
-  it("should show dashboard css editor", async () => {
+  it("should show dashboard style editor", async () => {
+    await setup();
+
+    expect(screen.getByTestId("dashboard-style-editor")).toBeInTheDocument();
+    expect(screen.getByText("启用自定义看板样式")).toBeInTheDocument();
+  });
+
+  it("should show legacy css editor for existing raw css", async () => {
     await setup({
       dashboard: createMockDashboard({
         caveats: setDashboardCustomCssInCaveats(
@@ -41,7 +48,7 @@ describe("DashboardSettingsSidebar", () => {
       }),
     });
 
-    expect(screen.getByLabelText("CSS editor")).toHaveValue(
+    expect(screen.getByLabelText("旧版 CSS")).toHaveValue(
       "[data-mb-dashboard-card] { border-radius: 12px; }",
     );
   });
