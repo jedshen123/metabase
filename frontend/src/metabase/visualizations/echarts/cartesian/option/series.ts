@@ -38,6 +38,7 @@ import type {
   XAxisModel,
 } from "metabase/visualizations/echarts/cartesian/model/types";
 import type { EChartsSeriesOption } from "metabase/visualizations/echarts/cartesian/option/types";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -74,10 +75,12 @@ const getBlurLabelStyle = (
 export const getBarLabelLayout =
   ({
     settings,
+    dataLabelFontSize,
     getBarDirection,
     getNegativeBarYOffset,
   }: {
     settings: ComputedVisualizationSettings;
+    dataLabelFontSize: number;
     getBarDirection: (p: LabelLayoutOptionCallbackParams) => RowValue;
     getNegativeBarYOffset: (p: LabelLayoutOptionCallbackParams) => number;
   }): BarSeriesOption["labelLayout"] =>
@@ -94,7 +97,7 @@ export const getBarLabelLayout =
       align: "center",
       dy:
         barDirection >= 0
-          ? -CHART_STYLE.seriesLabels.size - distance
+          ? -dataLabelFontSize - distance
           : getNegativeBarYOffset(params) + distance,
     };
   };
@@ -104,6 +107,7 @@ export const getBarInsideLabelLayout =
     dataset: ChartDataset,
     settings: ComputedVisualizationSettings,
     seriesDataKey: DataKey,
+    dataLabelFontSize: number,
     ticksRotation?: TicksRotation,
   ): BarSeriesOption["labelLayout"] =>
   (params) => {
@@ -117,14 +121,13 @@ export const getBarInsideLabelLayout =
     // Since we can't determine whether it's the initial render or if labelRect is computed for a rotated label,
     // we need to figure out the actual text width of the label based on the known side of the rectangle, which is the text size.
     const labelTextWidth =
-      labelRect.width === CHART_STYLE.seriesLabels.size
+      labelRect.width === dataLabelFontSize
         ? labelRect.height
         : labelRect.width;
     const paddedLabelTextWidth =
       CHART_STYLE.seriesLabels.stackedPadding * 2 + labelTextWidth;
     const paddedLabelTextHeight =
-      CHART_STYLE.seriesLabels.stackedPadding * 2 +
-      CHART_STYLE.seriesLabels.size;
+      CHART_STYLE.seriesLabels.stackedPadding * 2 + dataLabelFontSize;
 
     let canFit = false;
     if (ticksRotation === "horizontal") {
@@ -291,7 +294,7 @@ export const buildEChartsLabelOptions = (
   chartDataDensity?: ChartDataDensity,
   position?: LabelOption["position"],
 ): SeriesLabelOption => {
-  const { fontSize } = renderingContext.theme.cartesian.label;
+  const fontSize = getChartDataLabelFontSize(renderingContext);
 
   return {
     show: !!formatter,
@@ -391,7 +394,7 @@ export const buildEChartsStackLabelOptions = (
     show: true,
     fontFamily: renderingContext.fontFamily,
     fontWeight: CHART_STYLE.seriesLabels.weight,
-    fontSize: CHART_STYLE.seriesLabels.size,
+    fontSize: getChartDataLabelFontSize(renderingContext),
     color: getTextColorForBackground(
       seriesModel.color,
       renderingContext.getColor,
@@ -440,7 +443,7 @@ function getDataLabelSeriesOption(
       formatter,
       fontFamily: renderingContext.fontFamily,
       fontWeight: CHART_STYLE.seriesLabels.weight,
-      fontSize: CHART_STYLE.seriesLabels.size,
+      fontSize: getChartDataLabelFontSize(renderingContext),
       color: getCartesianChartTextColor(renderingContext, "data-label"),
       textBorderColor: renderingContext.getColor("background-primary"),
       textBorderWidth: 3,
@@ -483,6 +486,7 @@ const buildEChartsBarSeries = (
 ): BarSeriesOption | BarSeriesOption[] => {
   const stack = stackName ?? `bar_${seriesModel.dataKey}`;
   const isStacked = settings["stackable.stack_type"] != null;
+  const dataLabelFontSize = getChartDataLabelFontSize(renderingContext);
 
   const seriesOption: BarSeriesOption = {
     id: seriesModel.dataKey,
@@ -537,10 +541,12 @@ const buildEChartsBarSeries = (
           dataset,
           settings,
           seriesModel.dataKey,
+          dataLabelFontSize,
           chartMeasurements.stackedBarTicksRotation,
         )
       : getBarLabelLayout({
           settings,
+          dataLabelFontSize,
           getNegativeBarYOffset: ({ rect }) => rect.height,
           getBarDirection: ({ dataIndex }) => {
             if (dataIndex == null) {
@@ -589,6 +595,7 @@ const buildEChartsBarSeries = (
         ),
         labelLayout: getBarLabelLayout({
           settings,
+          dataLabelFontSize,
           getBarDirection: () => (sign === "+" ? 1 : -1),
           getNegativeBarYOffset: () => 0,
         }),

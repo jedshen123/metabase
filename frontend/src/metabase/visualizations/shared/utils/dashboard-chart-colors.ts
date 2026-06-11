@@ -157,6 +157,24 @@ export function getDashboardChartTextColor(kind: DashboardChartTextColorKind) {
   return undefined;
 }
 
+function parseCssFontSizePx(value: string) {
+  const pxMatch = value.match(/^([\d.]+)\s*px$/i);
+
+  if (pxMatch) {
+    const parsed = Number(pxMatch[1]);
+
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  const numberValue = Number(value);
+
+  if (Number.isFinite(numberValue) && numberValue > 0) {
+    return numberValue;
+  }
+}
+
 export function getDashboardChartStyleNumber(name: string) {
   if (typeof document === "undefined") {
     return undefined;
@@ -174,6 +192,26 @@ export function getDashboardChartStyleNumber(name: string) {
 
     if (Number.isFinite(numberValue)) {
       return numberValue;
+    }
+  }
+}
+
+/** Reads a dashboard-scoped CSS variable such as --mbdb-font-size-chart-label. */
+export function getDashboardCssFontSizePx(cssVarName: string) {
+  if (typeof document === "undefined") {
+    return undefined;
+  }
+
+  for (const dashboardRoot of document.querySelectorAll<HTMLElement>(
+    DASHBOARD_CSS_SCOPE_SELECTOR,
+  )) {
+    const value = getComputedStyle(dashboardRoot)
+      .getPropertyValue(`--${cssVarName}`)
+      .trim();
+    const parsed = parseCssFontSizePx(value);
+
+    if (parsed != null) {
+      return parsed;
     }
   }
 }

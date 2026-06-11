@@ -69,6 +69,33 @@ export function applyDefaultTemplateConfig(
   };
 }
 
+function migrateLegacyStyleTokens(
+  tokens: StyleTokenValues | undefined,
+): StyleTokenValues | undefined {
+  if (tokens == null) {
+    return tokens;
+  }
+
+  const legacy = tokens["mb-dashboard-chart-data-label-font-size"];
+
+  if (legacy == null) {
+    return tokens;
+  }
+
+  const migrated = { ...tokens };
+  delete migrated["mb-dashboard-chart-data-label-font-size"];
+
+  if (migrated["mb-dashboard-bar-data-label-font-size"] == null) {
+    migrated["mb-dashboard-bar-data-label-font-size"] = legacy;
+  }
+
+  if (migrated["mb-dashboard-pie-data-label-font-size"] == null) {
+    migrated["mb-dashboard-pie-data-label-font-size"] = legacy;
+  }
+
+  return migrated;
+}
+
 export function mergeStyleTokensWithDefaults(
   partial: Partial<{
     light: StyleTokenValues;
@@ -78,7 +105,7 @@ export function mergeStyleTokensWithDefaults(
   return {
     light: {
       ...DEFAULT_LIGHT_STYLE_TOKENS,
-      ...partial.light,
+      ...migrateLegacyStyleTokens(partial.light),
     },
     dark: {
       ...DEFAULT_DARK_STYLE_TOKENS,

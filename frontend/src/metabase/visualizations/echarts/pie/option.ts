@@ -3,7 +3,11 @@ import type { EChartsOption, SunburstSeriesOption } from "echarts";
 
 import { getTextColorForBackground } from "metabase/lib/colors";
 import { checkNotNull } from "metabase/lib/types";
-import { CHAR_ELLIPSES, truncateText } from "metabase/visualizations/lib/text";
+import { truncateText } from "metabase/visualizations/lib/text";
+import {
+  getPieSliceDataLabelFontSize,
+  hasDashboardPieDataLabelFontSizeOverride,
+} from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -14,8 +18,8 @@ import type { PieChartFormatters } from "./format";
 import type { PieChartModel, SliceTreeNode } from "./model/types";
 import { getArrayFromMapValues, getSliceTreeNodesFromPath } from "./util";
 import {
-  calcAvailableDonutSliceLabelLength,
   calcInnerOuterRadiusesForRing,
+  resolvePieSliceLabelDisplay,
 } from "./util/label";
 
 function getPositiveChartStyleNumber(
@@ -226,7 +230,7 @@ function getSeriesDataFromSlices(
   borderWidth: number,
   innerRadius: number,
   outerRadius: number,
-  fontSize: number,
+  targetFontSize: number,
 ): SunburstSeriesOption["data"] {
   const labelsPosition = chartModel.numRings > 1 ? "radial" : "horizontal";
 
@@ -251,40 +255,18 @@ function getSeriesDataFromSlices(
         renderingContext.getColor,
       );
       const label = getSliceLabel(s, settings, formatters);
-      const availableSpace =
-        calcAvailableDonutSliceLabelLength(
-          ringRadiuses.inner,
-          ringRadiuses.outer,
-          s.startAngle,
-          s.endAngle,
-          fontSize,
-          labelsPosition,
-        ) -
-        2 * DIMENSIONS.slice.label.padding;
-
-      const fontStyle = {
-        size: fontSize,
-        family: renderingContext.fontFamily,
-        weight: DIMENSIONS.slice.label.fontWeight,
-      };
-
-      let displayLabel: string | null = null;
-      const fullLabelLength = renderingContext.measureText(label, fontStyle);
-      if (fullLabelLength <= availableSpace) {
-        displayLabel = label;
-      } else if (settings["pie.show_labels"]) {
-        displayLabel =
-          availableSpace > 0
-            ? truncateText(
-                label,
-                availableSpace,
-                renderingContext.measureText,
-                fontStyle,
-              )
-            : null;
-
-        displayLabel = displayLabel === CHAR_ELLIPSES ? null : displayLabel;
-      }
+      const { displayLabel, fontSize: sliceFontSize } =
+        resolvePieSliceLabelDisplay({
+          label,
+          targetFontSize,
+          innerRadius: ringRadiuses.inner,
+          outerRadius: ringRadiuses.outer,
+          startAngle: s.startAngle,
+          endAngle: s.endAngle,
+          labelPosition: labelsPosition,
+          measureText: renderingContext.measureText,
+          fontFamily: renderingContext.fontFamily,
+        });
 
       const name =
         parentName != null
@@ -300,7 +282,8 @@ function getSeriesDataFromSlices(
         itemStyle: { color: s.color, borderWidth },
         label: {
           color: labelColor,
-          formatter: () => (displayLabel != null ? displayLabel : " "),
+          fontSize: sliceFontSize,
+          formatter: () => displayLabel,
           rotate: labelsPosition === "horizontal" ? 0 : "radial",
           verticalAlign: "middle",
         },
@@ -365,14 +348,11 @@ export function getPieChartOption(
 
   const borderWidth = getBorderWidth(innerSideLength, chartModel.numRings);
 
-  const fontSize =
-    chartModel.numRings > 1
-      ? DIMENSIONS.slice.multiRingFontSize
-      : Math.max(
-          DIMENSIONS.slice.maxFontSize *
-            (innerSideLength / DIMENSIONS.maxSideLength),
-          DIMENSIONS.slice.minFontSize,
-        );
+  const targetFontSize = getPieSliceDataLabelFontSize(
+    renderingContext,
+    innerSideLength,
+    chartModel.numRings,
+  );
 
   // "Show total" setting
   const graphicOption = getTotalGraphicOption(
@@ -395,7 +375,7 @@ export function getPieChartOption(
     borderWidth,
     innerRadius,
     outerRadius,
-    fontSize,
+    targetFontSize,
   );
 
   return {
@@ -417,11 +397,12 @@ export function getPieChartOption(
       },
       label: {
         overflow: "none",
-        fontSize,
+        fontSize: targetFontSize,
         fontWeight: DIMENSIONS.slice.label.fontWeight,
       },
       labelLayout: {
-        hideOverlap: true,
+        hideOverlap:
+          !hasDashboardPieDataLabelFontSizeOverride(renderingContext),
       },
       emphasis: {
         focus: "ancestor",

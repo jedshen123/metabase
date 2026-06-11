@@ -13,6 +13,7 @@ import type {
   YAxisModel,
 } from "metabase/visualizations/echarts/cartesian/model/types";
 import { getPaddedAxisLabel } from "metabase/visualizations/echarts/cartesian/option/utils";
+import { getCartesianAxisLabelFontSize } from "metabase/visualizations/shared/utils/chart-axis-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -80,19 +81,17 @@ export const getAxisNameDefaultOption = (
   nameRotate: rotate,
   nameTextStyle: {
     color: getCartesianChartTextColor(renderingContext, "axis"),
-    fontSize: renderingContext.theme.cartesian.label.fontSize,
+    fontSize: getCartesianAxisLabelFontSize(renderingContext),
     fontWeight: CHART_STYLE.axisName.weight,
     fontFamily: renderingContext.fontFamily,
   },
 });
 
 export const getTicksDefaultOption = (renderingContext: RenderingContext) => {
-  const { theme } = renderingContext;
-
   return {
     hideOverlap: true,
     color: getCartesianChartTextColor(renderingContext, "axis"),
-    fontSize: theme.cartesian.label.fontSize,
+    fontSize: getCartesianAxisLabelFontSize(renderingContext),
     fontWeight: CHART_STYLE.axisTicks.weight,
     fontFamily: renderingContext.fontFamily,
   };
@@ -113,9 +112,9 @@ const getHistogramTicksOptions = (
   datasetLength: number,
   settings: ComputedVisualizationSettings,
   chartMeasurements: ChartMeasurements,
-  { theme }: RenderingContext,
+  renderingContext: RenderingContext,
 ) => {
-  const { fontSize } = theme.cartesian.label;
+  const fontSize = getCartesianAxisLabelFontSize(renderingContext);
 
   if (settings["graph.x_axis.scale"] !== "histogram") {
     return {};

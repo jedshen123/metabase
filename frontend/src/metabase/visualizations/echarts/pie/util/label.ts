@@ -1,4 +1,9 @@
+import { DIMENSIONS } from "metabase/visualizations/echarts/pie/constants";
+import { CHAR_ELLIPSES, truncateText } from "metabase/visualizations/lib/text";
+import type { TextWidthMeasurer } from "metabase/visualizations/shared/types/measure-text";
 import type { Point } from "metabase-types/api/dataset";
+
+const PIE_SLICE_LABEL_MIN_FONT_SIZE = 8;
 
 /**
  * Calculates the length of a chord given the radius of a circle and the central angle.
@@ -128,16 +133,120 @@ const isNearXAxis = (
   );
 };
 
-/**
- * Calculates the available length for a donut slice label.
- * @param innerRadius - The inner radius of the donut.
- * @param outerRadius - The outer radius of the donut.
- * @param startAngle - The start angle of the slice, in radians.
- * @param endAngle - The end angle of the slice, in radians.
- * @param fontSize - The font size of the label.
- * @param labelPosition - The position of the label, either "horizontal" or "radial".
- * @returns The available length for the label.
- */
+function getMinPieSliceLabelFontSize(
+  innerRadius: number,
+  outerRadius: number,
+): number {
+  const donutThickness = outerRadius - innerRadius;
+  const geometryLimit = Math.floor(donutThickness / 2) - 1;
+
+  if (geometryLimit <= 0) {
+    return PIE_SLICE_LABEL_MIN_FONT_SIZE;
+  }
+
+  return Math.max(
+    PIE_SLICE_LABEL_MIN_FONT_SIZE,
+    Math.min(DIMENSIONS.slice.minFontSize, geometryLimit),
+  );
+}
+
+export function resolvePieSliceLabelDisplay({
+  label,
+  targetFontSize,
+  innerRadius,
+  outerRadius,
+  startAngle,
+  endAngle,
+  labelPosition,
+  measureText,
+  fontFamily,
+}: {
+  label: string;
+  targetFontSize: number;
+  innerRadius: number;
+  outerRadius: number;
+  startAngle: number;
+  endAngle: number;
+  labelPosition: "horizontal" | "radial";
+  measureText: TextWidthMeasurer;
+  fontFamily: string;
+}): { displayLabel: string; fontSize: number } {
+  const trimmed = label.trim();
+
+  if (trimmed === "" || label === " ") {
+    return { displayLabel: " ", fontSize: Math.round(targetFontSize) };
+  }
+
+  const fontWeight = DIMENSIONS.slice.label.fontWeight;
+  const maxSize = Math.max(
+    Math.round(targetFontSize),
+    getMinPieSliceLabelFontSize(innerRadius, outerRadius),
+  );
+  const minSize = getMinPieSliceLabelFontSize(innerRadius, outerRadius);
+
+  for (let size = maxSize; size >= minSize; size--) {
+    const availableSpace =
+      calcAvailableDonutSliceLabelLength(
+        innerRadius,
+        outerRadius,
+        startAngle,
+        endAngle,
+        size,
+        labelPosition,
+      ) -
+      2 * DIMENSIONS.slice.label.padding;
+
+    if (availableSpace <= 0) {
+      continue;
+    }
+
+    const fontStyle = {
+      size,
+      family: fontFamily,
+      weight: fontWeight,
+    };
+
+    if (measureText(label, fontStyle) <= availableSpace) {
+      return { displayLabel: label, fontSize: size };
+    }
+
+    const truncated = truncateText(
+      label,
+      availableSpace,
+      measureText,
+      fontStyle,
+    );
+
+    if (truncated !== CHAR_ELLIPSES) {
+      return { displayLabel: truncated, fontSize: size };
+    }
+  }
+
+  return { displayLabel: " ", fontSize: minSize };
+}
+
+/** @deprecated Use resolvePieSliceLabelDisplay */
+export const getEffectivePieSliceLabelFontSize = (
+  targetFontSize: number,
+  innerRadius: number,
+  outerRadius: number,
+  startAngle: number,
+  endAngle: number,
+  labelPosition: "horizontal" | "radial",
+): number => {
+  return resolvePieSliceLabelDisplay({
+    label: "0",
+    targetFontSize,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    labelPosition,
+    measureText: () => 0,
+    fontFamily: "Arial",
+  }).fontSize;
+};
+
 export const calcAvailableDonutSliceLabelLength = (
   innerRadius: number,
   outerRadius: number,

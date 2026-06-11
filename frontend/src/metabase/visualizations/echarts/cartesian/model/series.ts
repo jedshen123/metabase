@@ -27,6 +27,7 @@ import {
   SERIES_COLORS_SETTING_KEY,
   SERIES_SETTING_KEY,
 } from "metabase/visualizations/shared/settings/series";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -442,7 +443,7 @@ export function getWaterfallChartDataDensity(
   const fontStyle = {
     family: renderingContext.fontFamily,
     weight: CHART_STYLE.seriesLabels.weight,
-    size: CHART_STYLE.seriesLabels.size,
+    size: getChartDataLabelFontSize(renderingContext),
   };
 
   dataset.forEach((datum) => {
@@ -516,7 +517,7 @@ export function getComboChartDataDensity(
   const fontStyle = {
     family: renderingContext.fontFamily,
     weight: CHART_STYLE.seriesLabels.weight,
-    size: CHART_STYLE.seriesLabels.size,
+    size: getChartDataLabelFontSize(renderingContext),
   };
 
   dataset.forEach((datum) => {

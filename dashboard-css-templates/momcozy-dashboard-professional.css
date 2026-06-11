@@ -93,6 +93,10 @@
   --mbdb-chart-text: #526274;
   /* 柱顶/折线点数据标签颜色（编辑「图表 → 数据标签」，由 JS 读取） */
   --mbdb-chart-data-label: #172033;
+  /* 柱状图/折线图柱顶数据标签字号（由 JS 读取；默认与 Metabase 原生 13px 一致） */
+  --mb-dashboard-bar-data-label-font-size: 13;
+  /* 饼图扇区数据标签字号（未设置时按图表尺寸自动计算 14–20px） */
+  --mb-dashboard-pie-data-label-font-size: 14;
 
   /* ================================================================
    * 📉 折线图线条样式
@@ -418,13 +422,10 @@
 }
 
 /* ================================================================
- * 图表 SVG 文字（轴标签、刻度值）
- * 修改 --mbdb-font-size-chart-label 控制轴标签字号
- *
- * ⚠️ 注意：ECharts 会给 <text> 写内联 style="font-size:12px"，
- * 普通 CSS 的 !important 在某些浏览器/Metabase 版本下无法覆盖内联样式。
- * 此处同时设置 font-size 属性（SVG presentation attribute）和 style，
- * 并通过提升选择器特异性来确保跨环境一致。
+ * 图表 SVG 文字
+ * 轴刻度字号由 JS 读取 --mbdb-font-size-chart-label 写入 ECharts；
+ * 柱/折线数据标签字号由 JS 读取 --mb-dashboard-bar-data-label-font-size。
+ * 勿对此处 svg text 统一设 font-size !important，否则会覆盖数据标签字号。
  * ================================================================ */
 
 /* 强制字体族到 SVG text，避免跨环境字体族不同导致字符宽度差异
@@ -435,13 +436,11 @@
   font-family: -apple-system, "SF Pro Display", "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif !important;
 }
 
-/* 柱/折线轴刻度字号（颜色由 JS 读取 --mbdb-chart-text / --mbdb-chart-data-label 分别设置）
- * 排除饼图（data-viz-display 稳定；饼图中心文字见下方 data-mb-pie-total 规则） */
+/* 柱/折线图：仅统一字重（字号由 ECharts option 分别控制轴刻度与数据标签） */
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg text,
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg tspan,
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g text,
 [data-mb-visualization]:not(:has([data-viz-display="pie"])) svg g tspan {
-  font-size: var(--mbdb-font-size-chart-label) !important;
   font-weight: 500 !important;
 }
 

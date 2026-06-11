@@ -1,6 +1,6 @@
 import type { ChartMeasurements } from "metabase/visualizations/echarts/cartesian/chart-measurements/types";
-import { CHART_STYLE } from "metabase/visualizations/echarts/cartesian/constants/style";
 import type { DataKey } from "metabase/visualizations/echarts/cartesian/model/types";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -193,7 +193,7 @@ const computeSideLabelOverflow = (
 
   const fontStyle = {
     weight: BOXPLOT_DATA_LABEL_STYLE.fontWeight,
-    size: BOXPLOT_DATA_LABEL_STYLE.fontSize,
+    size: getChartDataLabelFontSize(renderingContext),
     family: renderingContext.fontFamily,
   };
 
@@ -302,6 +302,7 @@ const computeLabelOverflow = (
   labelLayoutMode: LabelLayoutMode,
   symbolSize: number,
   innerHeight: number,
+  renderingContext: RenderingContext,
 ): BoxPlotLabelOverflow => {
   const {
     dataBySeriesAndXValue,
@@ -356,7 +357,7 @@ const computeLabelOverflow = (
     transformedDataMax,
   );
 
-  const labelHeight = CHART_STYLE.seriesLabels.size;
+  const labelHeight = getChartDataLabelFontSize(renderingContext);
   const symbolRadius = symbolSize / 2;
   // In "all" mode we show min/max box labels AND outlier labels
   // In "median" mode we only show the median label (no overflow concern)
@@ -437,6 +438,7 @@ const computeOverflows = (
       labelLayoutMode,
       symbolSize,
       boundsHeight,
+      renderingContext,
     ),
     sideLabelOverflow: computeSideLabelOverflow(
       chartModel,

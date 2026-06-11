@@ -105,7 +105,13 @@ describe("ensureRoomForLabels", () => {
       mockRenderingContext,
     );
 
-    return [axes, chartModel, chartMeasurements, dataSeriesOptions] as const;
+    return [
+      axes,
+      chartModel,
+      chartMeasurements,
+      dataSeriesOptions,
+      mockRenderingContext,
+    ] as const;
   };
 
   const getBoundaryGap = (axis: YAXisOption | XAXisOption) =>
@@ -171,6 +177,26 @@ describe("buildEChartsSeries", () => {
       renderingContext,
     );
   };
+
+  it("uses dashboard data label font size overrides from the rendering context", () => {
+    mockSettings["graph.show_values"] = true;
+    seriesFn.mockReturnValue({
+      display: "line",
+      "line.marker_enabled": true,
+    });
+
+    const dataSeriesOptions = getLineSeriesOptions({
+      ...mockRenderingContext,
+      getChartStyleNumber: (name) =>
+        name === "bar-data-label-font-size" ? 16 : undefined,
+    });
+
+    expect(
+      dataSeriesOptions.find((seriesOption) => seriesOption.type === "line"),
+    ).toMatchObject({
+      label: { fontSize: 16 },
+    });
+  });
 
   it("uses dashboard line style overrides from the rendering context", () => {
     const dataSeriesOptions = getLineSeriesOptions({

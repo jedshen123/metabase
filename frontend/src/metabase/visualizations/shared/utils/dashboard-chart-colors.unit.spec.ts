@@ -2,6 +2,7 @@ import {
   getDashboardChartColor,
   getDashboardChartStyleNumber,
   getDashboardChartTextColor,
+  getDashboardCssFontSizePx,
 } from "./dashboard-chart-colors";
 
 describe("getDashboardChartColor", () => {
@@ -106,6 +107,26 @@ describe("getDashboardChartColor", () => {
     `;
 
     expect(getDashboardChartStyleNumber("line-symbol-size")).toBeUndefined();
+  });
+});
+
+describe("getDashboardCssFontSizePx", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("reads px and unitless dashboard font size variables", () => {
+    document.body.innerHTML = `
+      <div
+        data-mb-dashboard-css-scope="dashboard-1"
+        style="--mbdb-font-size-chart-label: 11px; --mb-dashboard-bar-data-label-font-size: 16"
+      ></div>
+    `;
+
+    expect(getDashboardCssFontSizePx("mbdb-font-size-chart-label")).toBe(11);
+    expect(
+      getDashboardCssFontSizePx("mb-dashboard-bar-data-label-font-size"),
+    ).toBe(16);
   });
 });
 

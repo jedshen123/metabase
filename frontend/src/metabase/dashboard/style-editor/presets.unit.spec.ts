@@ -1,6 +1,7 @@
 import {
   DEFAULT_DARK_STYLE_TOKENS,
   DEFAULT_LIGHT_STYLE_TOKENS,
+  mergeStyleTokensWithDefaults,
 } from "./defaults";
 import {
   FONT_FAMILY_PRESETS,
@@ -16,6 +17,29 @@ describe("style editor presets", () => {
     expect(
       DEFAULT_LIGHT_STYLE_TOKENS["mb-dashboard-chart-colors-dark"],
     ).toBeUndefined();
+  });
+
+  it("migrates legacy combined data label font size token", () => {
+    const tokens = mergeStyleTokensWithDefaults({
+      light: {
+        "mb-dashboard-chart-data-label-font-size": "18",
+      },
+    });
+
+    expect(
+      tokens.light["mb-dashboard-chart-data-label-font-size"],
+    ).toBeUndefined();
+    expect(tokens.light["mb-dashboard-bar-data-label-font-size"]).toBe("18");
+    expect(tokens.light["mb-dashboard-pie-data-label-font-size"]).toBe("18");
+  });
+
+  it("loads bar and pie data label font size defaults from template", () => {
+    expect(
+      DEFAULT_LIGHT_STYLE_TOKENS["mb-dashboard-bar-data-label-font-size"],
+    ).toBe("13");
+    expect(
+      DEFAULT_LIGHT_STYLE_TOKENS["mb-dashboard-pie-data-label-font-size"],
+    ).toBe("14");
   });
 
   it("matches template default font and kpi presets", () => {

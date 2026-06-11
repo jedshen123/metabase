@@ -13,6 +13,7 @@ import { buildAxes } from "metabase/visualizations/echarts/cartesian/option/axis
 import { buildEChartsSeries } from "metabase/visualizations/echarts/cartesian/option/series";
 import { getTimelineEventsSeries } from "metabase/visualizations/echarts/cartesian/timeline-events/option";
 import type { TimelineEventsModel } from "metabase/visualizations/echarts/cartesian/timeline-events/types";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -20,7 +21,6 @@ import type {
 import type { TimelineEventId } from "metabase-types/api";
 
 import type { ChartMeasurements } from "../chart-measurements/types";
-import { CHART_STYLE } from "../constants/style";
 import { getBarSeriesDataLabelKey } from "../model/util";
 
 import { getGoalLineParams, getGoalLineSeriesOption } from "./goal-line";
@@ -55,6 +55,7 @@ export const ensureRoomForLabels = (
   { leftAxisModel, rightAxisModel }: CartesianChartModel,
   chartMeasurements: ChartMeasurements,
   seriesOption: EChartsSeriesOption[],
+  renderingContext: RenderingContext,
 ): Axes => ({
   ...axes,
   yAxis: axes.yAxis.map((axis) => {
@@ -72,7 +73,13 @@ export const ensureRoomForLabels = (
     if (min < 0) {
       const { bounds } = chartMeasurements;
       const innerHeight = Math.abs(bounds.bottom - bounds.top);
-      const labelPct = CHART_STYLE.seriesLabels.size / innerHeight;
+
+      if (innerHeight <= 0) {
+        return axis;
+      }
+
+      const labelPct =
+        getChartDataLabelFontSize(renderingContext) / innerHeight;
       const lowerBoundaryGap = labelPct / 2; // `/ 2` because it's okay if the bar label overlaps the axis *line*, we just don't want it to overlap the axis *labels*
 
       // Only apply numeric boundaryGap to non-category axes
@@ -183,6 +190,7 @@ export const getCartesianChartOption = (
       chartModel,
       chartMeasurements,
       dataSeriesOptions,
+      renderingContext,
     ),
   };
 };

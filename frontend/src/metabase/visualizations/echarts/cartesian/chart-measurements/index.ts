@@ -14,6 +14,7 @@ import type {
   YAxisModel,
 } from "metabase/visualizations/echarts/cartesian/model/types";
 import { getPaddedAxisLabel } from "metabase/visualizations/echarts/cartesian/option/utils";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   Padding,
@@ -498,13 +499,13 @@ export const getChartPadding = (
   ticksDimensions: TicksDimensions,
   axisEnabledSetting: ComputedVisualizationSettings["graph.x_axis.axis_enabled"],
   chartWidth: number,
-  { theme }: RenderingContext,
+  renderingContext: RenderingContext,
 ): Padding => {
   const { xAxisModel, leftAxisModel, rightAxisModel, seriesModels } = input;
-  const { fontSize } = theme.cartesian.label;
+  const { fontSize } = renderingContext.theme.cartesian.label;
 
   const axisNameFontSize = fontSize;
-  const seriesLabelFontSize = fontSize;
+  const seriesLabelFontSize = getChartDataLabelFontSize(renderingContext);
 
   const padding: Padding = {
     top: CHART_STYLE.padding.y,
@@ -704,7 +705,7 @@ const countFittingLabels = (
 
           const valueWidth = renderingContext.measureText(formatter(value), {
             weight: CHART_STYLE.seriesLabels.weight,
-            size: CHART_STYLE.seriesLabels.size,
+            size: getChartDataLabelFontSize(renderingContext),
             family: renderingContext.fontFamily,
           });
 
@@ -752,7 +753,9 @@ const getStackedBarTicksRotation = (
     CHART_STYLE.series.barWidth *
     BAR_WIDTH_PRECISION;
 
-  if (barWidth < CHART_STYLE.seriesLabels.size) {
+  const dataLabelFontSize = getChartDataLabelFontSize(renderingContext);
+
+  if (barWidth < dataLabelFontSize) {
     return;
   }
 

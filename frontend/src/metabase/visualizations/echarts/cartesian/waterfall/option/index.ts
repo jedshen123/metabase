@@ -25,6 +25,7 @@ import {
 } from "metabase/visualizations/echarts/cartesian/waterfall/constants";
 import type { WaterfallSeriesOption } from "metabase/visualizations/echarts/types";
 import { getNumberOr } from "metabase/visualizations/lib/settings/row-values";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -42,7 +43,10 @@ const getLabelLayoutFn = (
   dataset: ChartDataset,
   chartMeasurements: ChartMeasurements,
   settings: ComputedVisualizationSettings,
+  renderingContext: RenderingContext,
 ): LabelLayoutOptionCallback => {
+  const dataLabelFontSize = getChartDataLabelFontSize(renderingContext);
+
   return (params) => {
     const { dataIndex, rect } = params;
     if (dataIndex == null) {
@@ -55,10 +59,10 @@ const getLabelLayoutFn = (
     const isIncrease = getNumberOr(value, 0) >= 0;
 
     const verticalAlignOffset =
-      CHART_STYLE.seriesLabels.size / 2 + CHART_STYLE.seriesLabels.offset;
+      dataLabelFontSize / 2 + CHART_STYLE.seriesLabels.offset;
 
     const hasBottomSpace =
-      rect.y + CHART_STYLE.seriesLabels.size + CHART_STYLE.seriesLabels.offset <
+      rect.y + dataLabelFontSize + CHART_STYLE.seriesLabels.offset <
       chartMeasurements.bounds.bottom;
 
     const barHeight = rect.height;
@@ -176,7 +180,12 @@ export const buildEChartsWaterfallSeries = (
       silent: true,
       dimensions: [X_AXIS_DATA_KEY, WATERFALL_VALUE_KEY, WATERFALL_END_KEY],
       symbolSize: 0,
-      labelLayout: getLabelLayoutFn(dataset, chartMeasurements, settings),
+      labelLayout: getLabelLayoutFn(
+        dataset,
+        chartMeasurements,
+        settings,
+        renderingContext,
+      ),
       encode: {
         y: WATERFALL_END_KEY,
         x: X_AXIS_DATA_KEY,

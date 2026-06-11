@@ -4,6 +4,7 @@ import {
   calcCircleIntersectionByHorizontalLine,
   calcInnerOuterRadiusesForRing,
   getCoordOnCircle,
+  resolvePieSliceLabelDisplay,
 } from "metabase/visualizations/echarts/pie/util/label";
 
 describe("pie chart label utilities", () => {
@@ -176,6 +177,49 @@ describe("pie chart label utilities", () => {
       );
       expect(result).toBeGreaterThan(0);
       expect(result).toBeLessThan(50);
+    });
+  });
+
+  describe("resolvePieSliceLabelDisplay", () => {
+    const measureText = (text: string, { size }: { size: number }) =>
+      text.length * size * 0.6;
+
+    it("reduces font size and truncates when the target size is too large", () => {
+      const innerRadius = 70;
+      const outerRadius = 110;
+      const startAngle = 0;
+      const endAngle = Math.PI / 3;
+
+      const result = resolvePieSliceLabelDisplay({
+        label: "Category A: 25%",
+        targetFontSize: 24,
+        innerRadius,
+        outerRadius,
+        startAngle,
+        endAngle,
+        labelPosition: "horizontal",
+        measureText,
+        fontFamily: "Arial",
+      });
+
+      expect(result.fontSize).toBeLessThan(24);
+      expect(result.displayLabel.trim()).not.toBe("");
+    });
+
+    it("keeps percent-only labels visible when space is tight", () => {
+      const result = resolvePieSliceLabelDisplay({
+        label: "25%",
+        targetFontSize: 24,
+        innerRadius: 70,
+        outerRadius: 110,
+        startAngle: 0,
+        endAngle: Math.PI / 6,
+        labelPosition: "horizontal",
+        measureText,
+        fontFamily: "Arial",
+      });
+
+      expect(result.displayLabel.trim()).not.toBe("");
     });
   });
 

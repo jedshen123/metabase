@@ -11,6 +11,7 @@ import {
   CHART_STYLE,
   Z_INDEXES,
 } from "metabase/visualizations/echarts/cartesian/constants/style";
+import { getChartDataLabelFontSize } from "metabase/visualizations/shared/utils/chart-data-label-font-size";
 import type {
   ComputedVisualizationSettings,
   RenderingContext,
@@ -229,7 +230,7 @@ export const buildEChartsPointsSeries = (
             distance: LABEL_DISTANCE,
             fontFamily: renderingContext.fontFamily,
             fontWeight: BOXPLOT_DATA_LABEL_STYLE.fontWeight,
-            fontSize: BOXPLOT_DATA_LABEL_STYLE.fontSize,
+            fontSize: getChartDataLabelFontSize(renderingContext),
             color: getCartesianChartTextColor(renderingContext, "data-label"),
             textBorderColor: renderingContext.getColor("background-primary"),
             textBorderWidth: BOXPLOT_DATA_LABEL_STYLE.textBorderWidth,
@@ -400,7 +401,7 @@ export const buildEChartsBoxPlotLabelsSeries = (
             verticalAlign: useSideLabels ? "middle" : isTop ? "bottom" : "top",
             fontFamily: renderingContext.fontFamily,
             fontWeight: BOXPLOT_DATA_LABEL_STYLE.fontWeight,
-            fontSize: BOXPLOT_DATA_LABEL_STYLE.fontSize,
+            fontSize: getChartDataLabelFontSize(renderingContext),
             color: getCartesianChartTextColor(renderingContext, "data-label"),
             textBorderColor: renderingContext.getColor("background-primary"),
             textBorderWidth: BOXPLOT_DATA_LABEL_STYLE.textBorderWidth,
