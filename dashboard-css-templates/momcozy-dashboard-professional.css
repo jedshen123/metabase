@@ -122,6 +122,40 @@
   --mb-dashboard-pie-total-label-font-size: 14;
 
   /* ================================================================
+   * 🎯 仪表盘（Gauge）文字 — 默认与 Metabase 原生 text-primary / text-secondary 一致
+   * ================================================================ */
+
+  /* 中心数值颜色（原生 text-primary） */
+  --mb-dashboard-gauge-center-color: #343f4b;
+  /* 中心数值字号 */
+  --mb-dashboard-gauge-center-font-size: 12;
+  /* 刻度标签颜色（原生 text-secondary） */
+  --mb-dashboard-gauge-scale-label-color: #6b7785;
+  /* 刻度标签字号 */
+  --mb-dashboard-gauge-scale-label-font-size: 12;
+
+  /* ================================================================
+   * 🔻 漏斗图（Funnel）文字 — 默认与 Metabase 原生一致
+   * ================================================================ */
+
+  /* 步骤名称颜色（原生 text-secondary） */
+  --mb-dashboard-funnel-header-color: #6b7785;
+  /* 步骤名称字号（看板原生 0.8125rem ≈ 13px） */
+  --mb-dashboard-funnel-header-font-size: 13;
+  /* 首列主指标颜色（原生 text-primary） */
+  --mb-dashboard-funnel-primary-metric-color: #343f4b;
+  /* 首列主指标字号（原生 1.72em ≈ 24px） */
+  --mb-dashboard-funnel-primary-metric-font-size: 24;
+  /* 转化率颜色（原生 text-secondary） */
+  --mb-dashboard-funnel-percent-color: #6b7785;
+  /* 转化率字号（原生 1.15em ≈ 16px） */
+  --mb-dashboard-funnel-percent-font-size: 16;
+  /* 步骤数值颜色（原生 text-secondary） */
+  --mb-dashboard-funnel-step-metric-color: #6b7785;
+  /* 步骤数值字号（原生 0.6875em ≈ 11px） */
+  --mb-dashboard-funnel-step-metric-font-size: 11;
+
+  /* ================================================================
    * 🖋️ 字体
    * 修改 --mbdb-font 可切换整套字体
    * ================================================================ */
@@ -457,6 +491,50 @@
   fill: var(--mbdb-text-muted, #64748b) !important;
 }
 
+/* ================================================================
+ * 仪表盘（Gauge）
+ * 弧段颜色由 JS 读取 --mb-dashboard-chart-colors；文字样式由 CSS 控制
+ * ================================================================ */
+[data-mb-visualization]:has([data-viz-display="gauge"]) [data-testid="gauge-center-value"] {
+  fill: var(--mb-dashboard-gauge-center-color) !important;
+  font-size: calc(var(--mb-dashboard-gauge-center-font-size, 12) * 1px) !important;
+  font-weight: 700 !important;
+}
+
+[data-mb-visualization]:has([data-viz-display="gauge"]) [data-testid="gauge-scale-label"] {
+  fill: var(--mb-dashboard-gauge-scale-label-color) !important;
+  font-size: calc(var(--mb-dashboard-gauge-scale-label-font-size, 12) * 1px) !important;
+  font-weight: 400 !important;
+}
+
+/* ================================================================
+ * 漏斗图（Funnel）
+ * 梯形填充色由 JS 读取 --mb-dashboard-chart-colors；文字样式由 CSS 控制
+ * ================================================================ */
+[data-mb-visualization]:has([data-viz-display="funnel"]) [data-testid="funnel-chart-header"] {
+  color: var(--mb-dashboard-funnel-header-color) !important;
+  font-size: calc(var(--mb-dashboard-funnel-header-font-size, 13) * 1px) !important;
+  font-weight: 400 !important;
+}
+
+[data-mb-visualization]:has([data-viz-display="funnel"]) [data-testid="funnel-chart-primary-metric"] {
+  color: var(--mb-dashboard-funnel-primary-metric-color) !important;
+  font-size: calc(var(--mb-dashboard-funnel-primary-metric-font-size, 24) * 1px) !important;
+  font-weight: 700 !important;
+}
+
+[data-mb-visualization]:has([data-viz-display="funnel"]) [data-testid="funnel-chart-percent"] {
+  color: var(--mb-dashboard-funnel-percent-color) !important;
+  font-size: calc(var(--mb-dashboard-funnel-percent-font-size, 16) * 1px) !important;
+  font-weight: 700 !important;
+}
+
+[data-mb-visualization]:has([data-viz-display="funnel"]) [data-testid="funnel-chart-step-metric"] {
+  color: var(--mb-dashboard-funnel-step-metric-color) !important;
+  font-size: calc(var(--mb-dashboard-funnel-step-metric-font-size, 11) * 1px) !important;
+  font-weight: 400 !important;
+}
+
 /* 图表背景网格线（覆盖默认的灰色线为主题网格色） */
 [data-mb-visualization] svg line,
 [data-mb-visualization] svg path[stroke="#EEE"],
@@ -683,6 +761,14 @@
   --mbdb-chart-text: #94a3b8;
   /* 暗色数据标签（编辑暗色「图表 → 数据标签」） */
   --mbdb-chart-data-label: #e2e8f0;
+
+  /* 暗色仪表盘 / 漏斗图文字（原生 text-primary / text-secondary） */
+  --mb-dashboard-gauge-center-color: #f2f2f2;
+  --mb-dashboard-gauge-scale-label-color: #b0b0b0;
+  --mb-dashboard-funnel-header-color: #b0b0b0;
+  --mb-dashboard-funnel-primary-metric-color: #f2f2f2;
+  --mb-dashboard-funnel-percent-color: #b0b0b0;
+  --mb-dashboard-funnel-step-metric-color: #b0b0b0;
 
   --mbdb-card-accent-gradient: linear-gradient(90deg, #7ecde6, #8ca1ff, #ff75a7);
 

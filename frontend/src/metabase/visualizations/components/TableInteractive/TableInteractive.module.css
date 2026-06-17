@@ -16,3 +16,7 @@
 .bodyCellWithImage img {
   vertical-align: middle;
 }
+
+.jsonCell {
+  cursor: pointer;
+}

@@ -12,8 +12,10 @@ import { color as colorHex } from "metabase/lib/colors";
 import { formatValue } from "metabase/lib/formatting";
 import { color } from "metabase/ui/utils/colors";
 import { ChartSettingSegmentsEditor } from "metabase/visualizations/components/settings/ChartSettingSegmentsEditor";
+import { useBrowserRenderingContext } from "metabase/visualizations/hooks/use-browser-rendering-context";
 import { columnSettings } from "metabase/visualizations/lib/settings/column";
 import { segmentIsValid } from "metabase/visualizations/lib/utils";
+import { getDashboardGaugeSegmentColor } from "metabase/visualizations/shared/utils/gauge-funnel-dashboard-styles";
 import {
   getDefaultSize,
   getMinSize,
@@ -60,7 +62,7 @@ const ARC_DEGREES = 180 + 45 * 2; // semicircle plus a bit
 const radians = (degrees) => (degrees * Math.PI) / 180;
 const degrees = (radians) => (radians * 180) / Math.PI;
 
-export class Gauge extends Component {
+class GaugeChart extends Component {
   static getUiName = () => t`Gauge`;
   static identifier = "gauge";
   static iconName = "gauge";
@@ -151,6 +153,10 @@ export class Gauge extends Component {
   }
 
   _updateLabelSize() {
+    if (this.props.isDashboard) {
+      return;
+    }
+
     const label = this.labelRef.current;
     if (label) {
       const { width: currentWidth } = label.getBBox();
@@ -184,8 +190,10 @@ export class Gauge extends Component {
       ],
       settings,
       className,
+      isDashboard,
       isSettings,
       onHoverChange,
+      renderingContext,
       visualizationIsClickable,
       onVisualizationClick,
     } = this.props;
@@ -284,7 +292,11 @@ export class Gauge extends Component {
                   key={index}
                   start={angle(segment.min)}
                   end={angle(segment.max)}
-                  fill={segment.color}
+                  fill={getDashboardGaugeSegmentColor(
+                    renderingContext,
+                    index,
+                    segment.color,
+                  )}
                   segment={segment}
                   column={column}
                   settings={settings}
@@ -304,6 +316,7 @@ export class Gauge extends Component {
                 numberLabels.map((value, index) => (
                   <GaugeSegmentLabel
                     key={index}
+                    isDashboard={isDashboard}
                     position={valuePosition(
                       value,
                       OUTER_RADIUS * LABEL_OFFSET_PERCENT,
@@ -317,13 +330,18 @@ export class Gauge extends Component {
                 textLabels.map(({ label, value }, index) => (
                   <HideIfOverflowingSVG key={index}>
                     <GaugeSegmentLabel
+                      isDashboard={isDashboard}
                       position={valuePosition(
                         value,
                         OUTER_RADIUS * LABEL_OFFSET_PERCENT,
                       )}
-                      style={{
-                        fill: getSegmentLabelColor(),
-                      }}
+                      style={
+                        isDashboard
+                          ? undefined
+                          : {
+                              fill: getSegmentLabelColor(),
+                            }
+                      }
                     >
                       {label}
                     </GaugeSegmentLabel>
@@ -333,12 +351,17 @@ export class Gauge extends Component {
               {/* NOTE: can't be a component because ref doesn't work? */}
               <text
                 ref={this.labelRef}
+                data-testid="gauge-center-value"
                 x={0}
                 y={0}
                 style={{
-                  fill: getCenterLabelColor(),
-                  fontSize: "1em",
-                  fontWeight: "bold",
+                  ...(isDashboard
+                    ? {}
+                    : {
+                        fill: getCenterLabelColor(),
+                        fontSize: "1em",
+                        fontWeight: "bold",
+                      }),
                   textAnchor: "middle",
                   transform: "translate(0,0.2em)",
                 }}
@@ -435,13 +458,23 @@ const GaugeNeedle = ({ angle, isAnimated = true }) => (
   </g>
 );
 
-const GaugeSegmentLabel = ({ position: [x, y], style = {}, children }) => (
+const GaugeSegmentLabel = ({
+  position: [x, y],
+  style = {},
+  children,
+  isDashboard,
+}) => (
   <text
+    data-testid="gauge-scale-label"
     x={x}
     y={y}
     style={{
-      fill: "var(--mb-color-text-secondary)",
-      fontSize: `${FONT_SIZE_SEGMENT_LABEL}px`,
+      ...(isDashboard
+        ? {}
+        : {
+            fill: "var(--mb-color-text-secondary)",
+            fontSize: `${FONT_SIZE_SEGMENT_LABEL}px`,
+          }),
       textAnchor: Math.abs(x) < 5 ? "middle" : x > 0 ? "start" : "end",
       // shift text in the lower half down a bit
       transform:
@@ -452,6 +485,21 @@ const GaugeSegmentLabel = ({ position: [x, y], style = {}, children }) => (
     {children}
   </text>
 );
+
+function Gauge(props) {
+  const { fontFamily, isDashboard, dashboard } = props;
+  const renderingContext = useBrowserRenderingContext({
+    fontFamily,
+    isDashboard,
+    dashboardId: dashboard?.id,
+  });
+
+  return <GaugeChart {...props} renderingContext={renderingContext} />;
+}
+
+Object.assign(Gauge, GaugeChart);
+
+export { Gauge };
 
 const HideIfOverflowingSVG = ({ children }) => {
   const elementRef = useRef(null);

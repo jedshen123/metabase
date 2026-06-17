@@ -205,6 +205,8 @@ export function Funnel(props: VisualizationProps) {
     getHref,
     isDashboard,
     isEditing,
+    isFullscreen,
+    dashboard,
     titleMenuItems,
   } = props;
   const hasTitle = showTitle && settings["card.title"];
@@ -214,7 +216,12 @@ export function Funnel(props: VisualizationProps) {
     settings["funnel.dimension"],
   );
 
-  const renderingContext = useBrowserRenderingContext({ fontFamily });
+  const renderingContext = useBrowserRenderingContext({
+    fontFamily,
+    isDashboard,
+    isFullscreen,
+    dashboardId: dashboard?.id,
+  });
 
   if (settings["funnel.type"] === "bar") {
     return (
@@ -252,6 +259,7 @@ export function Funnel(props: VisualizationProps) {
         {...props}
         rawSeries={groupedRawSeries}
         className={CS.flexFull}
+        renderingContext={renderingContext}
       />
     </div>
   );

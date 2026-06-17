@@ -42,6 +42,26 @@ describe("style editor presets", () => {
     ).toBe("14");
   });
 
+  it("loads gauge and funnel text style defaults from template", () => {
+    expect(DEFAULT_LIGHT_STYLE_TOKENS["mb-dashboard-gauge-center-color"]).toBe(
+      "#343f4b",
+    );
+    expect(
+      DEFAULT_LIGHT_STYLE_TOKENS["mb-dashboard-gauge-center-font-size"],
+    ).toBe("12");
+    expect(
+      DEFAULT_LIGHT_STYLE_TOKENS["mb-dashboard-funnel-header-font-size"],
+    ).toBe("13");
+    expect(
+      DEFAULT_LIGHT_STYLE_TOKENS[
+        "mb-dashboard-funnel-primary-metric-font-size"
+      ],
+    ).toBe("24");
+    expect(DEFAULT_DARK_STYLE_TOKENS["mb-dashboard-gauge-center-color"]).toBe(
+      "#f2f2f2",
+    );
+  });
+
   it("matches template default font and kpi presets", () => {
     expect(
       findMatchingPreset(

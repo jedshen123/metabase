@@ -1,0 +1,13 @@
+.codeContainer {
+  border: var(--border-size) var(--border-style) var(--mb-color-border);
+  border-radius: var(--default-border-radius);
+  box-shadow: 0 2px 2px var(--mb-color-shadow);
+  max-height: 55vh;
+  overflow: auto;
+  margin-bottom: 1rem;
+}
+
+.actions {
+  border-top: 1px solid var(--mb-color-border-subtle);
+  padding-top: 1rem;
+}

@@ -36575,3 +36575,15 @@ msgstr "按国家/地区获取的用户"
 msgid "Top 10 countries by sales"
 msgstr "销售额排名前 10 的国家/地区"
 
+#: frontend/src/metabase/visualizations/components/TableInteractive/CellContentModal.tsx:32
+msgid "Cell content"
+msgstr "单元格内容"
+
+#: frontend/src/metabase/visualizations/components/TableInteractive/CellContentModal.tsx:52
+msgid "Copy original"
+msgstr "复制原串"
+
+#: frontend/src/metabase/visualizations/components/TableInteractive/CellContentModal.tsx:60
+msgid "Copy formatted"
+msgstr "复制格式化 JSON"
+

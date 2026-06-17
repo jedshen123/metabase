@@ -1,10 +1,8 @@
 import cx from "classnames";
-import Color from "color";
 import { t } from "ttag";
 
 import { Ellipsified } from "metabase/common/components/Ellipsified";
 import CS from "metabase/css/core/index.css";
-import { color } from "metabase/lib/colors";
 import {
   formatChangeWithSign,
   formatNumber,
@@ -21,10 +19,8 @@ import {
   Subtitle,
   Title,
 } from "metabase/visualizations/components/FunnelNormal.styled";
-import {
-  calculateFunnelSteps,
-  calculateStepOpacity,
-} from "metabase/visualizations/lib/funnel/utils";
+import { calculateFunnelSteps } from "metabase/visualizations/lib/funnel/utils";
+import { getDashboardFunnelStepFill } from "metabase/visualizations/shared/utils/gauge-funnel-dashboard-styles";
 import type {
   ClickObject,
   HoveredObject,
@@ -53,11 +49,12 @@ export function FunnelNormal({
   rawSeries,
   gridSize,
   hovered,
-  isDashboard,
+  isDashboard: _isDashboard,
   onHoverChange,
   onVisualizationClick,
   visualizationIsClickable,
   settings,
+  renderingContext,
 }: VisualizationProps) {
   const [series] = rawSeries;
   const {
@@ -189,16 +186,15 @@ export function FunnelNormal({
       data-testid="funnel-chart"
     >
       <FunnelStep isFirst>
-        <Head
-          isNarrow={isNarrow}
-          style={{ fontSize: isDashboard ? "0.8125rem" : "unset" }}
-        >
+        <Head isNarrow={isNarrow}>
           <Ellipsified data-testid="funnel-chart-header">
             {formatDimension(dimensions[0])}
           </Ellipsified>
         </Head>
         <FunnelStart isNarrow={isNarrow}>
-          <Title>{formatMetric(metrics[0])}</Title>
+          <Title data-testid="funnel-chart-primary-metric">
+            {formatMetric(metrics[0])}
+          </Title>
           <Subtitle>
             <Ellipsified>{cols[metricIndex].display_name}</Ellipsified>
           </Subtitle>
@@ -212,10 +208,7 @@ export function FunnelNormal({
       {infos.map((info, index) => {
         return (
           <FunnelStep key={index}>
-            <Head
-              isNarrow={isNarrow}
-              style={{ fontSize: isDashboard ? "0.8125rem" : "unset" }}
-            >
+            <Head isNarrow={isNarrow}>
               <Ellipsified data-testid="funnel-chart-header">
                 {formatDimension(info.dimension)}
               </Ellipsified>
@@ -225,17 +218,16 @@ export function FunnelNormal({
               index={index}
               numSteps={infos.length}
               info={info}
+              renderingContext={renderingContext}
               hovered={hovered}
               onHoverChange={onHoverChange}
               onVisualizationClick={handleClick}
             />
             <Info isNarrow={isNarrow}>
-              <Title>
+              <Title data-testid="funnel-chart-percent">
                 <Ellipsified>{formatPercent(info.percent)}</Ellipsified>
               </Title>
-              <Subtitle
-                style={{ fontSize: isDashboard ? "0.8125rem" : "unset" }}
-              >
+              <Subtitle data-testid="funnel-chart-step-metric">
                 <Ellipsified>{formatMetric(info.value)}</Ellipsified>
               </Subtitle>
             </Info>
@@ -248,7 +240,7 @@ export function FunnelNormal({
 
 type GraphSectionProps = Pick<
   VisualizationProps,
-  "hovered" | "onHoverChange" | "onVisualizationClick"
+  "hovered" | "onHoverChange" | "onVisualizationClick" | "renderingContext"
 > & {
   index: number;
   numSteps: number;
@@ -260,6 +252,7 @@ const GraphSection = ({
   index,
   numSteps,
   info,
+  renderingContext,
   onHoverChange,
   onVisualizationClick,
   className,
@@ -291,8 +284,7 @@ const GraphSection = ({
         preserveAspectRatio="none"
       >
         <polygon
-          opacity={calculateStepOpacity(index, numSteps)}
-          fill={Color(color("brand")).hex()}
+          fill={getDashboardFunnelStepFill(renderingContext, index, numSteps)}
           points={`0 ${info.graph.startBottom}, 0 ${info.graph.startTop}, 1 ${info.graph.endTop}, 1 ${info.graph.endBottom}`}
         />
       </svg>

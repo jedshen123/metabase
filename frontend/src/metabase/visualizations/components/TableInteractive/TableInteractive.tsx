@@ -46,6 +46,7 @@ import { withMantineTheme } from "metabase/hoc/MantineTheme";
 import { useTranslateContent } from "metabase/i18n/hooks";
 import { getScrollBarSize } from "metabase/lib/dom";
 import { formatValue } from "metabase/lib/formatting";
+import { parseCellJsonValue } from "metabase/lib/json";
 import { useDispatch } from "metabase/lib/redux";
 import { setUIControls } from "metabase/query_builder/actions";
 import { Flex, type MantineTheme } from "metabase/ui";
@@ -70,6 +71,7 @@ import type {
   VisualizationSettings,
 } from "metabase-types/api";
 
+import { CellContentModal } from "./CellContentModal";
 import S from "./TableInteractive.module.css";
 import {
   HeaderCellWithColumnInfo,
@@ -187,6 +189,10 @@ export const TableInteractiveInner = forwardRef(function TableInteractiveInner(
   const isClientSideSortingEnabled = isDashboard;
   const isDashcardViewTable = isDashboard && !isSettings;
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [jsonCellContent, setJsonCellContent] = useState<{
+    parsedValue: unknown;
+    rawValue: RowValue;
+  } | null>(null);
 
   const tc = useTranslateContent();
 
@@ -311,6 +317,13 @@ export const TableInteractiveInner = forwardRef(function TableInteractiveInner(
       const columnIndex = isPivoted
         ? getColumnIndexFromPivotedColumnId(columnId)
         : data.cols.findIndex((col) => col.name === columnId);
+
+      const rawValue = data.rows[rowIndex][columnIndex];
+      const parsedJsonValue = parseCellJsonValue(rawValue);
+      if (parsedJsonValue != null) {
+        setJsonCellContent({ parsedValue: parsedJsonValue, rawValue });
+        return;
+      }
 
       const formatter = columnFormatters[columnIndex];
       const formattedValue = formatter.rich(
@@ -521,12 +534,14 @@ export const TableInteractiveInner = forwardRef(function TableInteractiveInner(
           cx("test-TableInteractive-cellWrapper", {
             [S.pivotedFirstColumn]: columnIndex === 0 && isPivoted,
             [S.bodyCellWithImage]: isImage,
+            [S.jsonCell]: parseCellJsonValue(value) != null,
             "test-Table-ID": value != null && isID(col),
             "test-Table-FK": value != null && isFK(col),
             "test-TableInteractive-cellWrapper--firstColumn": columnIndex === 0,
             "test-TableInteractive-cellWrapper--lastColumn":
               columnIndex === cols.length - 1,
             "test-TableInteractive-emptyCell": value == null,
+            "test-TableInteractive-jsonCell": parseCellJsonValue(value) != null,
           }),
         header: () => {
           return (
@@ -805,6 +820,14 @@ export const TableInteractiveInner = forwardRef(function TableInteractiveInner(
         onWheel={handleWheel}
         tableFooterExtraButtons={tableFooterExtraButtons}
       />
+      {jsonCellContent != null && (
+        <CellContentModal
+          parsedValue={jsonCellContent.parsedValue}
+          rawValue={jsonCellContent.rawValue}
+          opened
+          onClose={() => setJsonCellContent(null)}
+        />
+      )}
     </div>
   );
 });

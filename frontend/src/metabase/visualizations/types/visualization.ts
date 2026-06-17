@@ -191,6 +191,7 @@ export interface VisualizationProps {
    * Used for visualizer cards to jump to underlying questions
    */
   titleMenuItems?: React.ReactNode;
+  renderingContext?: RenderingContext;
 }
 
 export type VisualizationPassThroughProps = {
