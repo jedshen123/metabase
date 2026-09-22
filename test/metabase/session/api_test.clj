@@ -4,6 +4,7 @@
    [clj-http.client :as http]
    [clojure.test :refer :all]
    [medley.core :as m]
+   [metabase.auth-identity.core :as auth-identity]
    [metabase.driver.h2 :as h2]
    [metabase.request.core :as request]
    [metabase.request.settings :as request.settings]
@@ -412,6 +413,50 @@
             (is (= {:reset_token     nil
                     :reset_triggered nil}
                    (mt/derecordize (t2/select-one [:model/User :reset_token :reset_triggered], :id id))))))))))
+
+(defn- password-reset-state [user-id]
+  {:user          (t2/select-one [:model/User :password :password_salt :reset_token :reset_triggered :last_login]
+                                 :id user-id)
+   :identities    (t2/select :model/AuthIdentity :user_id user-id {:order-by [:id]})
+   :sessions      (t2/count :model/Session)
+   :login-history (t2/count :model/LoginHistory)})
+
+(deftest reset-password-rejects-extra-fields-test
+  (mt/with-fake-inbox
+    (mt/with-temp [:model/User {user-id :id} {:password "OriginalBird12!!"}]
+      (let [token (auth-identity/create-password-reset! user-id)
+            state (password-reset-state user-id)]
+        (doseq [extra [{:user-id {:raw "NULL"}}
+                       {:user_id {:raw "NULL"}}
+                       {:user-id ["=" user-id]}
+                       {:user-id user-id}
+                       {:user-id nil}
+                       {:user {:id user-id :is_active true}}
+                       {:user-data {:email "bird@example.com"}}
+                       {:auth-identity {:id 1}}
+                       {:success? true}
+                       {:session {:key "untrusted"}}
+                       {:unexpected "value"}]
+                supplied-token [token "invalid-token"]]
+          (testing (str "Unexpected fields are rejected without changing authentication state: " (keys extra))
+            (let [response (mt/client :post 400 "session/reset_password"
+                                      (merge {:token supplied-token :password "ReplacementBird12!!"} extra))]
+              (is (seq (:errors response)))
+              (is (= state (password-reset-state user-id))))))
+        (testing "The rejected requests leave the token usable for a legitimate reset and invitation acceptance"
+          (is (=? {:success true :session_id string/valid-uuid?}
+                  (mt/client :post 200 "session/reset_password"
+                             {:token token :password "ReplacementBird12!!"}))))))))
+
+(deftest reset-password-rejects-structured-credentials-test
+  (doseq [field [:token :password]
+          value [{:raw "NULL"} ["value"] 42 true nil]]
+    (testing (str "Invalid " field " is rejected before invoking authentication")
+      (let [calls (atom [])]
+        (with-redefs [auth-identity/login! (fn [& args] (swap! calls conj args) {:success? false})]
+          (is (seq (:errors (mt/client :post 400 "session/reset_password"
+                                       (assoc {:token "invalid-token" :password "ReplacementBird12!!"} field value)))))
+          (is (empty? @calls)))))))
 
 (deftest reset-password-throttling-test
   (testing "POST /api/session/reset_password - endpoint is throttled"

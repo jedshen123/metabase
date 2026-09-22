@@ -3,12 +3,74 @@
    [clojure.test :refer :all]
    [java-time.api :as t]
    [metabase.auth-identity.provider :as provider]
-   [methodical.core :as methodical]))
+   [metabase.auth-identity.session :as auth-session]
+   [metabase.util.malli :as mu]
+   [methodical.core :as methodical]
+   [toucan2.core :as t2]))
 
 ;; Set up test providers for testing the hierarchy
 (derive :provider/test-password ::provider/provider)
 (derive :provider/test-ldap ::provider/provider)
 (derive :provider/test-ldap ::provider/create-user-if-not-exists)
+
+(deftest login-rejects-internal-fields-test
+  (doseq [field [:user-id :user_id :user :user-data :auth-identity :provider-id :success? :session :jwt-data]
+          value [nil 1 {:raw "NULL"}]]
+    (testing (str "Client-supplied " field " must be rejected before authentication or database access")
+      (let [calls (atom [])]
+        (with-redefs [provider/authenticate (fn [& _] (swap! calls conj :authenticate) {:success? false})
+                      t2/select-one (fn [& _] (swap! calls conj :select))
+                      auth-session/create-session-with-auth-tracking! (fn [& _] (swap! calls conj :session))]
+          (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Unexpected authentication fields"
+                                (provider/login! :provider/test-password {field value})))
+          (is (empty? @calls)))))))
+
+(deftest login-unsuccessful-authentication-has-no-side-effects-test
+  (doseq [success? [false :redirect]
+          identity [{:user-id 1} {:user-data {:email "bird@example.com"}}]]
+    (testing "Failed authentication and redirects must not look up users or create sessions"
+      (let [calls  (atom [])
+            result (assoc identity :success? success?)]
+        (with-redefs [provider/authenticate (constantly result)
+                      t2/select-one (fn [& _] (swap! calls conj :select) {:id 1 :is_active true})
+                      auth-session/create-session-with-auth-tracking! (fn [& _] (swap! calls conj :session))]
+          (let [response (provider/login! :provider/test-password {})]
+            (is (= success? (:success? response)))
+            (is (nil? (:user response)))
+            (is (nil? (:session response))))
+          (is (empty? @calls)))))))
+
+(deftest login-validates-authenticated-identity-test
+  (doseq [identity [{:user-id {:raw "NULL"}}
+                    {:user-id [:= 1]}
+                    {:user-id "1"}
+                    {:user-id 1.5}
+                    {:user-id 0}
+                    {:user-id -1}
+                    {:user-data {:email {:raw "NULL"}}}
+                    {:user-data {:email ["bird@example.com"]}}]]
+    (testing "Provider identity values are validated before they reach the query builder"
+      (let [calls (atom [])]
+        (with-redefs [provider/authenticate (constantly (assoc identity :success? true))
+                      t2/select-one (fn [& _] (swap! calls conj :select))
+                      auth-session/create-session-with-auth-tracking! (fn [& _] (swap! calls conj :session))]
+          (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Invalid authenticated user"
+                                (mu/disable-enforcement
+                                  (provider/login! :provider/test-password {}))))
+          (is (empty? @calls)))))))
+
+(deftest login-rejected-after-authentication-does-not-create-session-test
+  (derive :provider/test-rejected-login ::provider/provider)
+  (methodical/defmethod provider/login! :provider/test-rejected-login
+    [_provider request]
+    (assoc request :success? false :error :login-denied))
+  (let [sessions (atom [])]
+    (with-redefs [provider/authenticate (constantly {:success? true :user-id 1})
+                  t2/select-one (constantly {:id 1 :is_active true})
+                  auth-session/create-session-with-auth-tracking! (fn [& args] (swap! sessions conj args))]
+      (is (=? {:success? false :error :login-denied}
+              (provider/login! :provider/test-rejected-login {})))
+      (is (empty? @sessions)))))
 
 (deftest ^:parallel provider-hierarchy-test
   (testing "Provider hierarchy works correctly"

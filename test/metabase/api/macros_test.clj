@@ -4,6 +4,23 @@
    [metabase.api.macros :as api.macros]
    [metabase.util.malli.registry :as mr]))
 
+(deftest ^:parallel closed-parameter-schema-test
+  (doseq [params-type [:route :query :body]
+          [schema params errors] [[[:map {:closed true} [:token :string]]
+                                   {:token "token" :user-id {:raw "NULL"}}
+                                   {:user-id "Unexpected parameter"}]
+                                  [[:map [:credentials [:map {:closed true} [:token :string]]]]
+                                   {:credentials {:token "token" :user-id 1}}
+                                   {:credentials {:user-id "Unexpected parameter"}}]]]
+    (testing "Unexpected keys in closed maps produce a validation error, including nested maps"
+      (is (thrown-with-msg? clojure.lang.ExceptionInfo #"Invalid (body|route parameters|query parameters)"
+                            (api.macros/decode-and-validate-params params-type schema params)))
+      (is (= {:status-code 400 :errors errors}
+             (try
+               (api.macros/decode-and-validate-params params-type schema params)
+               (catch clojure.lang.ExceptionInfo e
+                 (select-keys (ex-data e) [:status-code :errors]))))))))
+
 (deftest ^:parallel parse-args-test
   (are [args expected] (= expected
                           (#'api.macros/parse-args args))

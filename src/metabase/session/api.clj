@@ -230,16 +230,16 @@
   "Reset password with a reset token."
   [_route-params
    _query-params
-   request-body :- [:map
-                    [:token    ms/NonBlankString]
-                    [:password ms/ValidPassword]]
+   {:keys [token password]} :- [:map {:closed true}
+                                [:token    ms/NonBlankString]
+                                [:password ms/ValidPassword]]
    request]
   (let [request-source (request/ip-address request)]
     (throttle-check reset-password-throttler request-source))
   (let [auth-result (auth-identity/with-fallback auth-identity/login!
                       [:provider/support-access-grant
                        :provider/emailed-secret-password-reset]
-                      request-body)]
+                      {:token token :password password})]
     (if (:success? auth-result)
       (request/set-session-cookies request
                                    {:success true :session_id (get-in auth-result [:session :key])}

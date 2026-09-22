@@ -284,20 +284,38 @@
              :success? true
              :redirect-url redirect-url))))
 
+(defn- check-login-request [request]
+  ;; These fields may only come from the authentication provider, never from its input.
+  (when (some #(contains? request %)
+              [:user-id :user_id :user :user-data :auth-identity :provider-id :success? :session :jwt-data])
+    (throw (ex-info "Unexpected authentication fields" {:status-code 400}))))
+
+(defn- authenticated-user [{:keys [user-id user-data]}]
+  (let [email (:email user-data)]
+    ;; This validation must also run in production, where mu/defn instrumentation is disabled.
+    (when (and (some? user-id) (not (pos-int? user-id)))
+      (throw (ex-info "Invalid authenticated user ID" {:status-code 400})))
+    (when (and (some? email) (not (string? email)))
+      (throw (ex-info "Invalid authenticated user email" {:status-code 400})))
+    (or (when user-id
+          (t2/select-one [:model/User :id :is_active :last_login :tenant_id] :id user-id))
+        (when email
+          (t2/select-one [:model/User :id :is_active :last_login :tenant_id] :%lower.email (u/lower-case-en email))))))
+
 (methodical/defmethod login! :around ::provider
   [provider request]
-  (as-> (merge request (authenticate provider request)) $
-    (assoc $ :user
-           (or (when-let [user-id (:user-id $)]
-                 (t2/select-one [:model/User :id :is_active :last_login :tenant_id] :id user-id))
-               (when-let [email (get-in $ [:user-data :email])]
-                 (t2/select-one [:model/User :id :is_active :last_login :tenant_id] :%lower.email (u/lower-case-en email)))))
-    (cond-> $
-      (and (:provider-id $) (:user-data $))
-      (assoc-in [:user-data :provider-id] (:provider-id $)))
-    (next-method provider $)
-    (cond-> $
-      (:user $) (create-session! provider))
+  (check-login-request request)
+  (as-> (authenticate provider request) $
+    (if (true? (:success? $))
+      (as-> (merge request $) authenticated
+        (assoc authenticated :user (authenticated-user $))
+        (cond-> authenticated
+          (and (:provider-id authenticated) (:user-data authenticated))
+          (assoc-in [:user-data :provider-id] (:provider-id authenticated)))
+        (next-method provider authenticated)
+        (cond-> authenticated
+          (and (true? (:success? authenticated)) (:user authenticated)) (create-session! provider)))
+      $)
     (select-keys $ [:success? :user :redirect-url :error :message :user-data :session :jwt-data])))
 
 (defenterprise sso-user-fields

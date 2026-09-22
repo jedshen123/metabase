@@ -353,7 +353,7 @@
 
 (defn- invalid-params-errors [{:keys [schema], :as explanation}]
   (reduce
-   (fn [m {:keys [path in], :as _explanation}]
+   (fn [m {:keys [path in type], :as _explanation}]
      (let [error-path (remove integer? in)]
        ;; if there is already an error here keep the existing one, this is usually something like an `[:and x y]`
        ;; where `x` has already failed so it's preferable to return the error for that than the `y` one, which
@@ -368,7 +368,9 @@
                                (when (seq path)
                                  (or (malli.util/get-in schema path)
                                      (recur (pop path)))))]
-           (assoc-in m error-path (umd/describe nested-schema))))))
+           (assoc-in m error-path (if (= type ::mc/extra-key)
+                                    "Unexpected parameter"
+                                    (umd/describe nested-schema)))))))
    {}
    (:errors explanation)))
 
